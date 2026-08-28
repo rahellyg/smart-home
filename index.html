@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>בית חכם - לוח בקרה</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f0f2f5; color: #333; padding: 20px; display: flex; justify-content: center; }
+    .container { max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    
+    .card { background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    h2 { color: #1a73e8; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #f0f2f5; padding-bottom: 8px; }
+    
+    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .sensor-card { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; text-align: center; }
+    .sensor-title { font-size: 0.85rem; color: #6c757d; margin-bottom: 5px; }
+    .sensor-value { font-size: 1.3rem; font-weight: bold; color: #212529; }
+    
+    .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .btn { padding: 15px; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; background: #e9ecef; color: #495057; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .btn.active { background: #28a745; color: white; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
+    .btn-rgb.active { background: #6f42c1; color: white; box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3); }
+    
+    .color-picker-card, .slider-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; }
+    .color-picker-card input[type="color"] { border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; background: none; }
+
+    /* עיצוב הסליידר */
+    .slider-card input[type="range"] { width: 100%; accent-color: #1a73e8; cursor: pointer; }
+
+    .passcode-box { display: flex; gap: 10px; margin-top: 10px; }
+    .passcode-input { flex: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 1rem; text-align: center; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+    .passcode-btn { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; }
+    .status-dot.online { background: #28a745; }
+
+    /* עיצוב עבור אלמנט ה-QR Code */
+    #qrcode { display: flex; justify-content: center; margin-top: 10px; }
+    #qrcode img { border: 4px solid #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+    <h1 style="font-size: 1.4rem;">🏠 בית חכם - לוח בקרה</h1>
+    <div>סטטוס: <span id="status-dot" class="status-dot"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 נתוני חיישנים (Realtime)</h2>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="sensor-title">טמפרטורה 🌡️</div>
+        <div class="sensor-value"><span id="temp">--</span> °C</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-title">לחות 💧</div>
+        <div class="sensor-value"><span id="humidity">--</span> %</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-title">חיישן גז ⚠️</div>
+        <div class="sensor-value" id="gas">--</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-title">חיישן מים 🌧️</div>
+        <div class="sensor-value" id="water">--</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-title">זיהוי תנועה 🏃</div>
+        <div class="sensor-value" id="motion">--</div>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-title">RFID אחרון 💳</div>
+        <div class="sensor-value" id="rfid" style="font-size: 1rem;">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔐 הגדרת קוד דלת (לחצנים)</h2>
+    <small style="color: #6c757d;">הכנס רצף של L (לחצן שמאל) ו-R (לחצן ימין). דוגמה: LRLR</small>
+    <div class="passcode-box">
+      <input type="text" id="doorCodeInput" class="passcode-input" placeholder="LRLR" maxlength="10">
+      <button class="passcode-btn" onclick="saveDoorCode()">שמור קוד</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎛️ שליטה במכשירים</h2>
+    <div class="control-grid">
+      <button class="btn btn-rgb" id="btn-rgb" onclick="toggleDevice('rgbLed')">
+        <span>לד RGB 💡</span>
+        <small id="lbl-rgb">כבוי</small>
+      </button>
+
+      <div class="color-picker-card">
+        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">בחירת צבע 🎨</span>
+        <input type="color" id="rgbColorPicker" value="#ffffff" onchange="changeRgbColor(this.value)">
+      </div>
+
+      <button class="btn" id="btn-yellowLed" onclick="toggleDevice('yellowLed')">
+        <span>אור צהוב 🟡</span>
+        <small id="lbl-yellowLed">כבוי</small>
+      </button>
+
+      <button class="btn" id="btn-doorOpen" onclick="toggleDevice('doorOpen')">
+        <span>דלת 🚪</span>
+        <small id="lbl-doorOpen">סגורה</small>
+      </button>
+
+      <button class="btn" id="btn-windowOpen" onclick="toggleDevice('windowOpen')">
+        <span>חלון 🪟</span>
+        <small id="lbl-windowOpen">סגור</small>
+      </button>
+
+      <button class="btn" id="btn-buzzer" onclick="toggleDevice('buzzer')">
+        <span>זמזם 🔔</span>
+        <small id="lbl-buzzer">כבוי</small>
+      </button>
+
+      <div class="slider-card" style="grid-column: span 2;">
+        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">עוצמת מאוורר 💨: <span id="fanSpeedValue">0%</span></span>
+        <input type="range" id="fanSlider" min="0" max="255" value="0" oninput="updateFanSpeed(this.value)">
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card" style="text-align: center;">
+    <h2>📱 סרוק לגישה מהירה</h2>
+    <small style="color: #6c757d;">סרוק את הברקוד כדי לפתוח את לוח הבקרה בטלפון</small>
+    <div id="qrcode"></div>
+  </div>
+
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-Ks-c-oinr_TB2_NJ2wyFzdUPAcfze5E",
+    authDomain: "smarthouseiot-38ceb.firebaseapp.com",
+    databaseURL: "https://smarthouseiot-38ceb-default-rtdb.firebaseio.com",
+    projectId: "smarthouseiot-38ceb",
+    storageBucket: "smarthouseiot-38ceb.firebasestorage.app",
+    messagingSenderId: "996701344590",
+    appId: "1:996701344590:web:763e6abebb1a41f58fc41f"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let controlsState = {
+    rgbLed: false,
+    rgbColor: "#ffffff",
+    yellowLed: false,
+    doorOpen: false,
+    windowOpen: false,
+    buzzer: false,
+    fanSpeed: 0,
+    passcode: "LRLR"
+  };
+
+  // יצירת קוד QR אוטומטית לפי הכתובת הנוכחית של העמוד
+  window.addEventListener('DOMContentLoaded', () => {
+    new QRCode(document.getElementById("qrcode"), {
+      text: window.location.href,
+      width: 150,
+      height: 150
+    });
+  });
+
+  db.ref('sensors').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      document.getElementById('status-dot').className = "status-dot online";
+      document.getElementById('temp').innerText = data.temperature !== undefined ? data.temperature : '--';
+      document.getElementById('humidity').innerText = data.humidity !== undefined ? data.humidity : '--';
+      document.getElementById('gas').innerText = data.gas !== undefined ? data.gas : '--';
+      document.getElementById('water').innerText = data.water !== undefined ? data.water : '--';
+      document.getElementById('motion').innerText = data.motion ? "זיהה תנועה!" : "שקט";
+      document.getElementById('rfid').innerText = data.lastRFID || "אין";
+    }
+  }, (error) => {
+    console.error("Sensor read error:", error);
+    document.getElementById('status-dot').className = "status-dot";
+  });
+
+  db.ref('controls').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      controlsState = { ...controlsState, ...data };
+      updateUI();
+    }
+  });
+
+  function updateUI() {
+    updateBtn('btn-rgb', 'lbl-rgb', controlsState.rgbLed, "דלוק", "כבוי");
+    updateBtn('btn-yellowLed', 'lbl-yellowLed', controlsState.yellowLed, "דלוק", "כבוי");
+    updateBtn('btn-doorOpen', 'lbl-doorOpen', controlsState.doorOpen, "פתוחה", "סגורה");
+    updateBtn('btn-windowOpen', 'lbl-windowOpen', controlsState.windowOpen, "פתוח", "סגור");
+    updateBtn('btn-buzzer', 'lbl-buzzer', controlsState.buzzer, "פועל", "כבוי");
+
+    if (controlsState.fanSpeed !== undefined) {
+      document.getElementById('fanSlider').value = controlsState.fanSpeed;
+      const percentage = Math.round((controlsState.fanSpeed / 255) * 100);
+      document.getElementById('fanSpeedValue').innerText = percentage + "%";
+    }
+
+    if (controlsState.rgbColor) {
+      document.getElementById('rgbColorPicker').value = controlsState.rgbColor;
+    }
+    if (controlsState.passcode) {
+      document.getElementById('doorCodeInput').value = controlsState.passcode;
+    }
+  }
+
+  function updateBtn(btnId, lblId, state, activeText, inactiveText) {
+    const btn = document.getElementById(btnId);
+    const lbl = document.getElementById(lblId);
+    if (state) {
+      btn.classList.add('active');
+      lbl.innerText = activeText;
+    } else {
+      btn.classList.remove('active');
+      lbl.innerText = inactiveText;
+    }
+  }
+
+  function toggleDevice(device) {
+    const newValue = !controlsState[device];
+    db.ref('controls/' + device).set(newValue);
+  }
+
+  function updateFanSpeed(val) {
+    const speed = parseInt(val);
+    const percentage = Math.round((speed / 255) * 100);
+    document.getElementById('fanSpeedValue').innerText = percentage + "%";
+    db.ref('controls/fanSpeed').set(speed);
+  }
+
+  function changeRgbColor(hexColor) {
+    db.ref('controls/rgbColor').set(hexColor);
+    if (!controlsState.rgbLed) {
+      db.ref('controls/rgbLed').set(true);
+    }
+  }
+
+  function saveDoorCode() {
+    let code = document.getElementById('doorCodeInput').value.trim().toUpperCase();
+    code = code.replace(/[^LR]/g, '');
+    if (code.length > 0) {
+      db.ref('controls/passcode').set(code);
+      document.getElementById('doorCodeInput').value = code;
+      alert('הקוד עודכן בהצלחה: ' + code);
+    } else {
+      alert('יש להזין קוד התקף המכיל רק את האותיות L ו-R');
+    }
+  }
+</script>
+
+</body>
+</html>
