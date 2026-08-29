@@ -251,7 +251,6 @@
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.id = `slide-${index}`;
-                // שימוש ב-grid מקצועי למיקום אופקי זה לצד זה במסכים בינוניים ומעלה
                 slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-8 shadow-2xl gap-6 md:gap-8 items-center ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
@@ -269,22 +268,22 @@
                         const activeClass = mIdx === 0 ? 'active' : '';
                         if (isVideoUrl(mUrl)) {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} w-full h-full" data-media-idx="${mIdx}">
-                                    <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-cover rounded-2xl"></video>
+                                <div class="inner-media ${activeClass} w-full h-full flex items-center justify-center p-3 md:p-5" data-media-idx="${mIdx}">
+                                    <video src="${mUrl}" autoplay loop muted playsinline class="max-w-full max-h-full object-contain rounded-2xl shadow-md"></video>
                                 </div>
                             `;
                         } else {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} w-full h-full flex items-center justify-center p-4 bg-slate-900/10 rounded-2xl" data-media-idx="${mIdx}">
-                                    <img src="${mUrl}" alt="Media" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://via.placeholder.com/400x300?text=SmartStart'" />
+                                <div class="inner-media ${activeClass} w-full h-full flex items-center justify-center p-4 md:p-6" data-media-idx="${mIdx}">
+                                    <img src="${mUrl}" alt="Media" class="max-w-full max-h-full object-contain rounded-xl shadow-md" onerror="this.src='https://via.placeholder.com/400x300?text=SmartStart'" />
                                 </div>
                             `;
                         }
                     });
                 } else {
                     mediaHTML = `
-                        <div class="inner-media active w-full h-full flex items-center justify-center p-4">
-                            <img src="logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/300'" />
+                        <div class="inner-media active w-full h-full flex items-center justify-center p-4 md:p-6">
+                            <img src="logo.png" alt="Logo" class="max-w-full max-h-full object-contain" onerror="this.src='https://via.placeholder.com/300'" />
                         </div>
                     `;
                 }
@@ -303,9 +302,9 @@
                         </div>
                     </div>
 
-                    <!-- עמודת מדיה למעלה/לצד -->
-                    <div class="w-full h-full min-h-[260px] md:min-h-[360px] flex justify-center items-center">
-                        <div class="w-full h-full bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-2xl md:rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl relative overflow-hidden">
+                    <!-- עמודת מדיה ממורכזת מוגנת חריגה -->
+                    <div class="w-full h-full min-h-[250px] md:min-h-[360px] flex justify-center items-center py-2 md:py-4">
+                        <div class="w-full h-full max-h-[400px] bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-2xl md:rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl relative overflow-hidden">
                             ${mediaHTML}
                         </div>
                     </div>
