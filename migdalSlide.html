@@ -251,8 +251,7 @@
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.id = `slide-${index}`;
-                // הוספת overflow-hidden והבטחת גובה מאוזן לכרטיס הראשי
-                slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-5 md:p-8 shadow-2xl gap-6 md:gap-8 items-center max-h-full overflow-hidden ${index === currentIndex ? 'active' : ''}`;
+                slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-5 md:p-8 shadow-2xl gap-6 md:gap-8 items-center overflow-hidden ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
                     <div class="bg-purple-50/90 p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
@@ -291,7 +290,7 @@
 
                 slideEl.innerHTML = `
                     <!-- עמודת תוכן -->
-                    <div class="space-y-3 md:space-y-4 text-right flex flex-col justify-center h-full overflow-hidden">
+                    <div class="space-y-3 md:space-y-4 text-right flex flex-col justify-center h-full">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="bg-pink-100 text-pink-900 px-3 py-1 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
                             <span class="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
@@ -303,9 +302,9 @@
                         </div>
                     </div>
 
-                    <!-- עמודת מדיה (תיבה כהה המוגבלת בגובה וממורכזת באופן מושלם) -->
+                    <!-- עמודת מדיה (גובה מוגדל ותואם לעמודת התוכן) -->
                     <div class="w-full flex justify-center items-center h-full">
-                        <div class="w-full h-[220px] md:h-[340px] max-h-[45vh] relative rounded-2xl md:rounded-3xl bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 border-4 border-white shadow-xl overflow-hidden shrink-0">
+                        <div class="w-full h-[320px] md:h-[460px] max-h-[60vh] relative rounded-2xl md:rounded-3xl bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 border-4 border-white shadow-xl overflow-hidden shrink-0">
                             ${mediaHTML}
                         </div>
                     </div>
