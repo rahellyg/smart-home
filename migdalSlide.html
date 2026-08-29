@@ -237,7 +237,6 @@
         let progressVal = 0;
         const SLIDE_DURATION = 20000;
         let innerMediaIntervals = {};
-        let isDOMRendered = false;
 
         function isVideoUrl(url) {
             return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i);
@@ -252,10 +251,11 @@
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.id = `slide-${index}`;
-                slideEl.className = `slide flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-8 ${index === currentIndex ? 'active' : ''}`;
+                // שימוש ב-grid מקצועי למיקום אופקי זה לצד זה במסכים בינוניים ומעלה
+                slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-8 shadow-2xl gap-6 md:gap-8 items-center ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
-                    <div class="bg-purple-50/90 p-2 md:p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
+                    <div class="bg-purple-50/90 p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
                         <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-500 to-purple-600 text-white text-xs flex items-center justify-center shrink-0 shadow-sm">
                             <i class="${f.icon}"></i>
                         </span>
@@ -290,20 +290,22 @@
                 }
 
                 slideEl.innerHTML = `
-                    <div class="w-full lg:w-6/12 space-y-2 md:space-y-4 text-right overflow-hidden flex flex-col justify-center">
+                    <!-- עמודת תוכן -->
+                    <div class="space-y-3 md:space-y-5 text-right overflow-hidden flex flex-col justify-center h-full">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="bg-pink-100 text-pink-900 px-3 py-1 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
                             <span class="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
                         </div>
                         <h2 class="text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
-                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4 md:line-clamp-5">${slide.desc}</p>
+                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${slide.desc}</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
                             ${featuresHTML}
                         </div>
                     </div>
 
-                    <div class="w-full lg:w-6/12 h-64 md:h-80 lg:h-full flex justify-center items-center shrink-0">
-                        <div class="w-full h-full max-h-[420px] bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl relative overflow-hidden">
+                    <!-- עמודת מדיה למעלה/לצד -->
+                    <div class="w-full h-full min-h-[260px] md:min-h-[360px] flex justify-center items-center">
+                        <div class="w-full h-full bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-2xl md:rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl relative overflow-hidden">
                             ${mediaHTML}
                         </div>
                     </div>
@@ -330,7 +332,6 @@
                 }
             });
 
-            isDOMRendered = true;
             resetProgress();
         }
 
