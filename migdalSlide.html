@@ -59,8 +59,8 @@
 
     <header class="w-full py-3.5 px-4 md:px-8 flex flex-wrap justify-between items-center bg-white/90 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50 shadow-sm gap-3">
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center p-1 shadow-lg border border-indigo-200 overflow-hidden">
-                <img id="headerLogoImg" src="logot.png" alt="SmartStart Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
+            <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-1 shadow-lg border border-indigo-200 overflow-hidden">
+                <img id="headerLogoImg" src="logo.png" alt="SmartStart Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
             </div>
             <div>
                 <h1 class="text-base md:text-lg font-black tracking-wider text-indigo-950 leading-tight">SMARTSTART</h1>
@@ -92,6 +92,7 @@
 
     <main class="flex-grow flex items-center justify-center p-3 md:p-6 relative">
         <div id="slidesViewport" class="w-full max-w-7xl mx-auto relative min-h-[580px] md:min-h-[640px] flex items-center justify-center">
+            <!-- Dynamic Slides -->
         </div>
 
         <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
@@ -134,37 +135,76 @@
 
         <div class="text-xs text-purple-900 font-bold flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>SmartStart © 2026</span>
+            <span>מעבר אוטומטי כל 8 שניות | SmartStart © 2026</span>
         </div>
     </footer>
 
     <script>
-        // שנה את המשתנה הזה לשם הקובץ של התמונה שלך ב-GitHub
         let logoImgUrl = "logo.png";
 
         const slidesData = [
             {
-                badge1: "ערב הורים ורישום לקורסים 2026",
-                badge2: "מצגת פתיחה ראשית",
+                badge1: "SmartStart",
+                badge2: "אקדמיה לעתיד הטכנולוגי",
                 title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
-                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים.",
-                features: ["שיטת PBL מעשית", "רובוטיקה, IoT ו-AI", "פיתוח חשיבה יצירתית", "הכנה לעולם העתיד"]
+                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים ואינטראקטיביים. אנו מציעים מסלולי לימוד מרתקים המשלבים תכנות, בניית רובוטים וטכנולוגיות מתקדמות כמו IoT, בינה מלאכותית, פיתוח אפליקציות ועוד, תוך שימוש בשיטת Project-Based Learning.",
+                features: ["למידה מבוססת פרויקטים (PBL)", "תכנות, רובוטיקה ו-AI", "פיתוח חשיבה יצירתית ולוגית", "חיבור לעולם העבודה המעודכן"]
             },
             {
-                badge1: "בית חכם & IoT",
-                badge2: "פרויקט מעשי",
-                title: 'שליטה בזמן אמת עם <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">ESP32 ו-Firebase</span>',
-                desc: "בניית מערכת ניהול חכמה המחוברת לענן, המאפשרת ניטור וצריכת חשמל אופטימלית בזמן אמת.",
-                features: ["חיבור בזמן אמת ל-Firebase", "שליטה בממסרים וצרכנים", "חיישני טמפרטורה וזיהוי נוכחות", "ממשק משתמש מתקדם ב-Web"]
+                badge1: "כיתות ד' – ו'",
+                badge2: "15 מפגשים",
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">AI-MAKERS</span> (מייקרים מונעי בינה מלאכותית)',
+                desc: "בואו להוביל את המהפכה הטכנולוגית הבאה! כאן לא רק לומדים תיאוריה – בונים, מפרקים ויוצרים מערכות חכמות מאפס, תוך שימוש בכוחה של הבינה המלאכותית (AI) להעניק למערכות יכולת למידה, זיהוי ותגובה בזמן אמת.",
+                features: [
+                    "יצירה עצמאית (DIY Tech): תכנון, חיישנים ומנועים",
+                    "בינה מלאכותית: למידת מכונה וזיהוי סביבה",
+                    "למידה מבוססת פרויקטים (PBL)",
+                    "טכנולוגיות: App Inventor, Arduino/ESP32, Firebase"
+                ]
+            },
+            {
+                badge1: "כיתות ד' – ו'",
+                badge2: "15 מפגשים",
+                title: 'מאסטרים ב-<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">Generative AI</span>',
+                desc: "קורס המפתח חשיבה אלגוריתמית ויצירתיות טכנולוגית. התלמידים יתנסו בתכנון ופיתוח אפליקציות אינטראקטיביות מורכבות ב-App Inventor של MIT, החל משלב ה-UX/UI ועד להטמעה בטלפון הנייד.",
+                features: [
+                    "שימוש בחיישנים: GPS, מד תאוצה ומצלמה",
+                    "שילוב מולטימדיה וממשקים חיצוניים (API)",
+                    "אחסון וניהול נתונים בענן Google",
+                    "זיהוי עצמים, דיבור והבעות פנים ב-AI"
+                ]
+            },
+            {
+                badge1: "גן חובה עד כיתות א' – ג'",
+                badge2: "מסלול יסודות",
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מהנדסים צעירים</span> (WeDo 2.0)',
+                desc: "הצעד הראשון של ילדיכם בעולם ההנדסה המודרנית! באמצעות סביבת הלמידה החווייתית WeDo 2.0 של חברת לגו, התלמידים יחקרו עקרונות פיזיקליים, ירכיבו רובוטים מתוחכמים ויפתחו מיומנויות תכנות בסיסיות.",
+                features: [
+                    "בניית רובוטים מלגו עם מנועים וחיישנים",
+                    "תכנות בלוקים חזותי בסביבת WeDo 2.0",
+                    "חקר עקרונות הפיזיקה, מדעים ומוטוריקה עדינה",
+                    "פרויקטים בנושאי חילוץ והצלה, בעלי חיים ומיחזור"
+                ]
+            },
+            {
+                badge1: "כיתות ד' – ו'",
+                badge2: "מסלול שנתי",
+                title: 'חוקרי <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">I.O.T ובינה מלאכותית</span>',
+                desc: "מסלול יוקרתי המקנה ארגז כלים טכנולוגי מהשורה הראשונה. התלמידים ילמדו להפוך רעיון למוצר עובד – מתכנות אפליקציות לבעלי מוגבלויות ועד ניהול צריכת המים והחשמל בבתים חכמים, תוך שילוב Arduino, ESP32, Firebase ו-AI.",
+                features: [
+                    "תכנון וניהול פרויקטים משלב הרעיון עד הביצוע",
+                    "שימוש ב-AI להתאמת חוויית משתמש בבית החכם",
+                    "עבודה עם חיישני אור, לחות, טמפרטורה ואלקטרוניקה",
+                    "פיתוח אפליקציות וחיבור בזמן אמת לענן"
+                ]
             }
         ];
 
         let currentIndex = 0;
         let isPlaying = true;
-        let slideInterval = null;
         let progressInterval = null;
         let progressVal = 0;
-        const SLIDE_DURATION = 8000; // 8 שניות לשקף
+        const SLIDE_DURATION = 8000;
 
         function renderSlides() {
             const viewport = document.getElementById('slidesViewport');
@@ -204,9 +244,8 @@
 
                 viewport.appendChild(slideEl);
 
-                // יצירת אינדיקטורים בתחתית (נקודות)
                 const dot = document.createElement('button');
-                dot.className = `w-3 h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-8' : 'bg-purple-200'}`;
+                dot.className = `h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-8' : 'bg-purple-200 w-3'}`;
                 dot.onclick = () => goToSlide(index);
                 indicators.appendChild(dot);
             });
