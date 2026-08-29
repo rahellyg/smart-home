@@ -35,12 +35,22 @@
             transform: scale(1) translateY(0);
         }
 
+        .inner-media {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .inner-media.active {
+            display: block;
+            opacity: 1;
+        }
+
         @keyframes floatAnim {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(1deg); }
+            50% { transform: translateY(-6px) rotate(0.5deg); }
         }
         .floating-anim {
-            animation: floatAnim 4s ease-in-out infinite;
+            animation: floatAnim 5s ease-in-out infinite;
         }
 
         .progress-bar-fill {
@@ -91,27 +101,38 @@
             <!-- Dynamic Slides Render Here -->
         </div>
 
-        <!-- Edit Modal -->
+        <!-- Edit Drawer / Modal -->
         <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
-            <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
+            <div class="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
                 <div class="flex items-center justify-between border-b pb-4 mb-4 border-slate-200">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-purple-600 text-xl"></i>
-                        <h3 class="text-xl font-black text-slate-900">הגדרות תמונת לוגו</h3>
+                        <i class="fa-solid fa-photo-film text-purple-600 text-xl"></i>
+                        <h3 class="text-xl font-black text-slate-900">ניהול מדיה לשקפים</h3>
                     </div>
                     <button onclick="toggleEditMode()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">✕</button>
                 </div>
 
                 <div class="space-y-4 flex-grow">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">הכנס קישור לתמונה (URL או שם קובץ)</label>
-                        <input type="text" id="editLogoInput" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono dir-ltr text-left focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="logo.png">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">בחר שקף לעריכה:</label>
+                        <select id="editSlideSelect" onchange="loadSlideMediaToEdit()" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50">
+                        </select>
+                    </div>
+
+                    <div class="border-t pt-3">
+                        <label class="block text-xs font-bold text-slate-700 mb-2">רשימת תמונות/סרטונים לשקף הזה:</label>
+                        <div id="mediaInputsList" class="space-y-2">
+                            <!-- Dynamic inputs for media -->
+                        </div>
+                        <button onclick="addMediaInput()" class="mt-3 w-full border border-dashed border-purple-400 text-purple-700 hover:bg-purple-50 p-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i> הוסף תמונה/סרטון נוסף
+                        </button>
                     </div>
                 </div>
 
-                <div class="mt-6 pt-4 border-t border-slate-200">
-                    <button onclick="updateLogoUrl()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:opacity-90 transition cursor-pointer">
-                        עדכן תמונה
+                <div class="mt-6 pt-4 border-t border-slate-200 flex gap-2">
+                    <button onclick="saveSlideMedia()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:opacity-90 transition cursor-pointer">
+                        שמור שינויים לשקף
                     </button>
                 </div>
             </div>
@@ -133,73 +154,76 @@
 
         <div class="text-xs text-purple-900 font-bold flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>מעבר אוטומטי כל 8 שניות | SmartStart © 2026</span>
+            <span>מעבר שקפים כל 20 שניות | SmartStart © 2026</span>
         </div>
     </footer>
 
     <script>
-        let logoImgUrl = "logo.png";
-
         const slidesData = [
             {
+                title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
                 badge1: "SmartStart",
                 badge2: "אקדמיה לעתיד הטכנולוגי",
-                title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
-                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים ואינטראקטיביים. אנו מציעים מסלולי לימוד מרתקים המשלבים תכנות, בניית רובוטים וטכנולוגיות מתקדמות כמו IoT, בינה מלאכותית, פיתוח אפליקציות ועוד, תוך שימוש בשיטת Project-Based Learning.",
+                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים ואינטראקטיביים. אנו מציעים מסלולי לימוד מרתקים המשלבים תכנות, בניית רובוטים וטכנולוגיות מתקדמות כמו IoT, בינה מלאכותית, פיתוח אפליקציות ועוד.",
                 features: [
                     { text: "למידה מבוססת פרויקטים (PBL)", icon: "fa-solid fa-cubes" },
                     { text: "תכנות, רובוטיקה ו-AI", icon: "fa-solid fa-robot" },
                     { text: "פיתוח חשיבה יצירתית ולוגית", icon: "fa-solid fa-lightbulb" },
                     { text: "חיבור לעולם העבודה המעודכן", icon: "fa-solid fa-briefcase" }
-                ]
+                ],
+                media: ["logo.png"]
             },
             {
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">AI-MAKERS</span> (מייקרים מונעי בינה מלאכותית)',
                 badge1: "כיתות ד' – ו'",
                 badge2: "15 מפגשים",
-                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">AI-MAKERS</span> (מייקרים מונעי בינה מלאכותית)',
                 desc: "בואו להוביל את המהפכה הטכנולוגית הבאה! כאן לא רק לומדים תיאוריה – בונים, מפרקים ויוצרים מערכות חכמות מאפס, תוך שימוש בכוחה של הבינה המלאכותית (AI) להעניק למערכות יכולת למידה, זיהוי ותגובה בזמן אמת.",
                 features: [
                     { text: "יצירה עצמאית (DIY Tech): תכנון וחיישנים", icon: "fa-solid fa-microchip" },
                     { text: "בינה מלאכותית: למידת מכונה וזיהוי", icon: "fa-solid fa-brain" },
                     { text: "למידה מבוססת פרויקטים (PBL)", icon: "fa-solid fa-diagram-project" },
                     { text: "טכנולוגיות: App Inventor, Arduino/ESP32", icon: "fa-solid fa-code" }
-                ]
+                ],
+                media: ["logo.png"]
             },
             {
+                title: 'מאסטרים ב-<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">Generative AI</span>',
                 badge1: "כיתות ד' – ו'",
                 badge2: "15 מפגשים",
-                title: 'מאסטרים ב-<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">Generative AI</span>',
                 desc: "קורס המפתח חשיבה אלגוריתמית ויצירתיות טכנולוגית. התלמידים יתנסו בתכנון ופיתוח אפליקציות אינטראקטיביות מורכבות ב-App Inventor של MIT, החל משלב ה-UX/UI ועד להטמעה בטלפון הנייד.",
                 features: [
                     { text: "שימוש בחיישנים: GPS, מד תאוצה ומצלמה", icon: "fa-solid fa-location-dot" },
                     { text: "שילוב מולטימדיה וממשקים (API)", icon: "fa-solid fa-plug" },
                     { text: "אחסון וניהול נתונים בענן Google", icon: "fa-solid fa-cloud" },
                     { text: "זיהוי עצמים, דיבור והבעות פנים ב-AI", icon: "fa-solid fa-wand-magic-sparkles" }
-                ]
+                ],
+                media: ["logo.png"]
             },
             {
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מהנדסים צעירים</span> (WeDo 2.0)',
                 badge1: "גן חובה עד כיתות א' – ג'",
                 badge2: "מסלול יסודות",
-                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מהנדסים צעירים</span> (WeDo 2.0)',
                 desc: "הצעד הראשון של ילדיכם בעולם ההנדסה המודרנית! באמצעות סביבת הלמידה החווייתית WeDo 2.0 של חברת לגו, התלמידים יחקרו עקרונות פיזיקליים, ירכיבו רובוטים מתוחכמים ויפתחו מיומנויות תכנות בסיסיות.",
                 features: [
                     { text: "בניית רובוטים מלגו עם מנועים וחיישנים", icon: "fa-solid fa-gear" },
                     { text: "תכנות בלוקים חזותי בסביבת WeDo 2.0", icon: "fa-solid fa-shapes" },
                     { text: "חקר עקרונות הפיזיקה ומוטוריקה עדינה", icon: "fa-solid fa-atom" },
                     { text: "פרויקטים בנושאי חילוץ, בעלי חיים וסביבה", icon: "fa-solid fa-leaf" }
-                ]
+                ],
+                media: ["logo.png"]
             },
             {
+                title: 'חוקרי <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">I.O.T ובינה מלאכותית</span>',
                 badge1: "כיתות ד' – ו'",
                 badge2: "מסלול שנתי",
-                title: 'חוקרי <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">I.O.T ובינה מלאכותית</span>',
                 desc: "מסלול יוקרתי המקנה ארגז כלים טכנולוגי מהשורה הראשונה. התלמידים ילמדו להפוך רעיון למוצר עובד – מתכנות אפליקציות לבעלי מוגבלויות ועד ניהול צריכת המים והחשמל בבתים חכמים, תוך שילוב Arduino, ESP32, Firebase ו-AI.",
                 features: [
                     { text: "תכנון וניהול פרויקטים מהרעיון למוצר", icon: "fa-solid fa-rocket" },
                     { text: "שימוש ב-AI להתאמת חוויה בבית חכם", icon: "fa-solid fa-house-signal" },
                     { text: "עבודה עם חיישני אור, לחות ואלקטרוניקה", icon: "fa-solid fa-gauge-high" },
                     { text: "פיתוח אפליקציות וחיבור בזמן אמת לענן", icon: "fa-solid fa-mobile-screen-button" }
-                ]
+                ],
+                media: ["logo.png"]
             }
         ];
 
@@ -207,9 +231,18 @@
         let isPlaying = true;
         let progressInterval = null;
         let progressVal = 0;
-        const SLIDE_DURATION = 8000;
+        const SLIDE_DURATION = 20000; // 20 שניות לשקף ראשי
+        let innerMediaIntervals = {};
+
+        function isVideoUrl(url) {
+            return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i);
+        }
 
         function renderSlides() {
+            // ניקוי אינטרוולים פנימיים קודמים
+            Object.values(innerMediaIntervals).forEach(clearInterval);
+            innerMediaIntervals = {};
+
             const viewport = document.getElementById('slidesViewport');
             const indicators = document.getElementById('indicators');
             viewport.innerHTML = '';
@@ -217,7 +250,7 @@
 
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
-                slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-6 ${index === currentIndex ? 'active' : ''}`;
+                slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-8 ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
                     <div class="bg-purple-50/90 p-2 md:p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
@@ -228,31 +261,75 @@
                     </div>
                 `).join('');
 
+                // בניית תמונות/סרטונים לסליידר פנימי
+                let mediaHTML = '';
+                if (slide.media && slide.media.length > 0) {
+                    slide.media.forEach((mUrl, mIdx) => {
+                        const activeClass = mIdx === 0 ? 'active' : '';
+                        if (isVideoUrl(mUrl)) {
+                            mediaHTML += `
+                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full" data-media-idx="${mIdx}">
+                                    <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-cover rounded-2xl"></video>
+                                </div>
+                            `;
+                        } else {
+                            mediaHTML += `
+                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full flex items-center justify-center p-4 bg-slate-900/10 rounded-2xl" data-media-idx="${mIdx}">
+                                    <img src="${mUrl}" alt="Media" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://via.placeholder.com/400x300?text=SmartStart'" />
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    mediaHTML = `
+                        <div class="inner-media active absolute inset-0 w-full h-full flex items-center justify-center p-4">
+                            <img src="logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/300'" />
+                        </div>
+                    `;
+                }
+
                 slideEl.innerHTML = `
-                    <div class="w-full lg:w-7/12 space-y-2 md:space-y-3.5 text-right overflow-hidden flex flex-col justify-center">
+                    <!-- חלק המלל -->
+                    <div class="w-full lg:w-6/12 space-y-2 md:space-y-4 text-right overflow-hidden flex flex-col justify-center">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="bg-pink-100 text-pink-900 px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-black border border-pink-200">${slide.badge1}</span>
-                            <span class="bg-purple-100 text-purple-900 px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-black border border-purple-200">${slide.badge2}</span>
+                            <span class="bg-pink-100 text-pink-900 px-3 py-1 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
+                            <span class="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
                         </div>
                         <h2 class="text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
-                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4">${slide.desc}</p>
+                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4 md:line-clamp-5">${slide.desc}</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
                             ${featuresHTML}
                         </div>
                     </div>
-                    <div class="w-full lg:w-5/12 flex justify-center items-center shrink-0">
-                        <div class="w-40 h-40 md:w-64 md:h-64 bg-gradient-to-tr from-indigo-900 via-blue-800 to-indigo-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl floating-anim p-4">
-                            <img src="${logoImgUrl}" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
+
+                    <!-- חלק המדיה (סליידר פנימי מוגדל) -->
+                    <div class="w-full lg:w-6/12 h-64 md:h-80 lg:h-full flex justify-center items-center shrink-0">
+                        <div class="w-full h-full max-h-[420px] bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl floating-anim relative overflow-hidden">
+                            ${mediaHTML}
                         </div>
                     </div>
                 `;
 
                 viewport.appendChild(slideEl);
 
+                // נקודות אינדיקטור
                 const dot = document.createElement('button');
                 dot.className = `h-2.5 md:h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-6 md:w-8' : 'bg-purple-200 w-2.5 md:w-3'}`;
                 dot.onclick = () => goToSlide(index);
                 indicators.appendChild(dot);
+
+                // הפעלת לולאת מדיה פנימית במידה ויש יותר מפריט אחד
+                if (slide.media && slide.media.length > 1) {
+                    let currentMediaIdx = 0;
+                    innerMediaIntervals[index] = setInterval(() => {
+                        if (index === currentIndex) { // רק בשקף האקטיבי
+                            const mediaItems = slideEl.querySelectorAll('.inner-media');
+                            mediaItems[currentMediaIdx].classList.remove('active');
+                            currentMediaIdx = (currentMediaIdx + 1) % mediaItems.length;
+                            mediaItems[currentMediaIdx].classList.add('active');
+                        }
+                    }, 4000); // מעבר בין מדיה למדיה כל 4 שניות בתוך השקף
+                }
             });
 
             resetProgress();
@@ -312,18 +389,71 @@
             clearInterval(progressInterval);
         }
 
+        /* --- מצב עריכה מתקדם למדיה --- */
         function toggleEditMode() {
-            document.getElementById('editDrawer').classList.toggle('hidden');
+            const drawer = document.getElementById('editDrawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                populateSlideSelectOptions();
+                loadSlideMediaToEdit();
+            }
         }
 
-        function updateLogoUrl() {
-            const inputVal = document.getElementById('editLogoInput').value;
-            if (inputVal) {
-                logoImgUrl = inputVal;
-                document.getElementById('headerLogoImg').src = inputVal;
-                renderSlides();
-                toggleEditMode();
+        function populateSlideSelectOptions() {
+            const select = document.getElementById('editSlideSelect');
+            select.innerHTML = '';
+            slidesData.forEach((s, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `שקף ${idx + 1}: ${s.badge1} - ${s.badge2}`;
+                if (idx === currentIndex) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadSlideMediaToEdit() {
+            const slideIdx = document.getElementById('editSlideSelect').value;
+            const mediaList = slidesData[slideIdx].media || [];
+            const container = document.getElementById('mediaInputsList');
+            container.innerHTML = '';
+
+            mediaList.forEach((url, i) => {
+                addMediaInputRow(url);
+            });
+
+            if (mediaList.length === 0) {
+                addMediaInputRow("logo.png");
             }
+        }
+
+        function addMediaInputRow(urlValue = '') {
+            const container = document.getElementById('mediaInputsList');
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 media-input-row';
+            row.innerHTML = `
+                <input type="text" value="${urlValue}" class="media-url-input flex-grow p-2 rounded-xl border border-slate-300 text-xs font-mono dir-ltr text-left focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="https://... או image.jpg / video.mp4">
+                <button onclick="this.parentElement.remove()" class="w-8 h-8 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center shrink-0 font-bold transition">✕</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addMediaInput() {
+            addMediaInputRow('');
+        }
+
+        function saveSlideMedia() {
+            const slideIdx = document.getElementById('editSlideSelect').value;
+            const inputs = document.querySelectorAll('.media-url-input');
+            const newMedia = [];
+
+            inputs.forEach(input => {
+                const val = input.value.trim();
+                if (val) newMedia.push(val);
+            });
+
+            slidesData[slideIdx].media = newMedia;
+            renderSlides();
+            toggleEditMode();
         }
 
         window.onload = () => {
