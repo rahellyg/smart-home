@@ -7,36 +7,40 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Heebo -->
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* מניעת גלילה לחלוטין */
+        }
+        
         body {
             font-family: 'Heebo', sans-serif;
-            overflow: hidden; /* מניעת גלילה לגמרי עבור מסך טלוויזיה */
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-            color: #f8fafc;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 50%, #e0f2fe 100%);
         }
         
         .slide {
             display: none;
             opacity: 0;
-            transition: opacity 0.7s ease-in-out, transform 0.7s ease-in-out;
-            transform: scale(0.96);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.97) translateY(10px);
         }
         .slide.active {
             display: flex;
             opacity: 1;
-            transform: scale(1);
+            transform: scale(1) translateY(0);
         }
 
         @keyframes floatAnim {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
         }
         .floating-anim {
-            animation: floatAnim 5s ease-in-out infinite;
+            animation: floatAnim 4s ease-in-out infinite;
         }
 
         .progress-bar-fill {
@@ -44,83 +48,92 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-between p-6 md:p-10 selection:bg-pink-500 selection:text-white select-none">
+<body class="h-screen w-screen flex flex-col justify-between text-slate-800 selection:bg-pink-500 selection:text-white overflow-hidden">
 
     <!-- Header -->
-    <header class="w-full flex justify-between items-center bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-5 px-8 shadow-2xl z-50">
-        <div class="flex items-center gap-6">
-            <div class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center p-2 shadow-xl border-2 border-indigo-400 shrink-0">
+    <header class="w-full py-2.5 px-4 md:px-8 flex items-center justify-between bg-white/90 backdrop-blur-md border-b border-purple-100 shrink-0 shadow-sm z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white flex items-center justify-center p-1 shadow-lg border border-indigo-200 shrink-0">
                 <img id="headerLogoImg" src="logo.png" alt="SmartStart Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
             </div>
             <div>
-                <h1 class="text-3xl md:text-4xl font-black tracking-wider text-white leading-tight">SMARTSTART</h1>
-                <p class="text-base md:text-lg text-pink-400 font-bold tracking-widest uppercase">Future Tech Leaders</p>
+                <h1 class="text-base md:text-xl font-black tracking-wider text-indigo-950 leading-tight">SMARTSTART</h1>
+                <p class="text-[10px] md:text-xs text-pink-600 font-bold tracking-wide">FUTURE TECH LEADERS</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3 bg-pink-500/20 px-6 py-3 rounded-2xl border border-pink-500/40 text-lg md:text-xl text-pink-300 font-extrabold shadow-lg">
-                <span class="w-4 h-4 rounded-full bg-pink-500 animate-ping"></span>
-                <span>הרשמה לשנת 2026 בעיצומה</span>
+        <div class="flex items-center gap-2 md:gap-3">
+            <div class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-pink-50 to-purple-50 px-3 py-1.5 rounded-full border border-pink-200 text-xs text-purple-800 font-bold shadow-sm">
+                <span class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping"></span>
+                <span>ערב הורים ורישום 2026</span>
             </div>
 
-            <button id="toggleEditBtn" onclick="toggleEditMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-5 py-3 rounded-2xl text-base font-bold transition shadow-md flex items-center gap-2 cursor-pointer">
+            <button id="toggleEditBtn" onclick="toggleEditMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-pen-to-square text-pink-400"></i>
-                <span>עריכה</span>
+                <span id="editBtnText">מצב עריכה</span>
             </button>
 
-            <button id="pausePlayBtn" onclick="togglePlay()" class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white px-6 py-3 rounded-2xl text-base md:text-lg font-bold transition shadow-lg shadow-purple-500/30 flex items-center gap-3 cursor-pointer">
+            <button id="pausePlayBtn" onclick="togglePlay()" class="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all shadow-md shadow-purple-500/25 flex items-center gap-2 cursor-pointer active:scale-95">
                 <i id="playPauseIcon" class="fa-solid fa-pause"></i>
-                <span id="playPauseText">השהה</span>
+                <span id="playPauseText" class="hidden md:inline">השהה מצגת</span>
             </button>
         </div>
     </header>
 
     <!-- Progress Bar -->
-    <div class="w-full bg-slate-800/80 h-3 rounded-full mt-4 overflow-hidden border border-slate-700/50 shadow-inner">
-        <div id="progressBar" class="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-400 w-0 progress-bar-fill"></div>
+    <div class="w-full bg-purple-100/50 h-1.5 shrink-0 relative overflow-hidden">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 w-0 progress-bar-fill"></div>
     </div>
 
     <!-- Main Viewport -->
-    <main class="flex-grow flex items-center justify-center my-4 relative">
-        <div id="slidesViewport" class="w-full h-full max-w-[1700px] mx-auto relative flex items-center justify-center">
+    <main class="flex-grow flex items-center justify-center p-3 md:p-6 relative overflow-hidden">
+        <div id="slidesViewport" class="w-full h-full max-w-7xl mx-auto relative flex items-center justify-center">
             <!-- Dynamic Slides Render Here -->
         </div>
 
         <!-- Edit Modal -->
-        <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex justify-center items-center">
-            <div class="w-full max-w-xl bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl flex flex-col gap-6 text-right">
-                <div class="flex items-center justify-between border-b border-slate-700 pb-4">
-                    <h3 class="text-2xl font-black text-white">הגדרת תמונת הלוגו</h3>
-                    <button onclick="toggleEditMode()" class="text-slate-400 hover:text-white text-2xl font-bold">✕</button>
+        <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
+            <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
+                <div class="flex items-center justify-between border-b pb-4 mb-4 border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-purple-600 text-xl"></i>
+                        <h3 class="text-xl font-black text-slate-900">הגדרות תמונת לוגו</h3>
+                    </div>
+                    <button onclick="toggleEditMode()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">✕</button>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-300 mb-2">נתיב קובץ הלוגו או URL:</label>
-                    <input type="text" id="editLogoInput" class="w-full p-4 rounded-xl bg-slate-800 border border-slate-600 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 dir-ltr text-left" placeholder="logo.png">
+
+                <div class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">הכנס קישור לתמונה (URL או שם קובץ)</label>
+                        <input type="text" id="editLogoInput" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono dir-ltr text-left focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="logo.png">
+                    </div>
                 </div>
-                <button onclick="updateLogoUrl()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg transition">
-                    עדכן תמונה
-                </button>
+
+                <div class="mt-6 pt-4 border-t border-slate-200">
+                    <button onclick="updateLogoUrl()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:opacity-90 transition cursor-pointer">
+                        עדכן תמונה
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- Footer Controls -->
-    <footer class="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-4 px-8 flex items-center justify-between shadow-2xl z-50">
-        <div class="flex items-center gap-4">
-            <button onclick="prevSlide()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center transition shadow-md active:scale-95 text-xl" aria-label="שקף קודם">
-                <i class="fa-solid fa-chevron-right"></i>
+    <footer class="w-full py-2.5 px-4 md:px-8 bg-white/90 backdrop-blur-md border-t border-purple-100 shrink-0 flex items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+            <button onclick="prevSlide()" class="bg-purple-100 hover:bg-purple-200 border border-purple-300 text-purple-900 w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 font-bold" aria-label="שקף קודם">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
             </button>
-            <button onclick="nextSlide()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center transition shadow-md active:scale-95 text-xl" aria-label="שקף הבא">
-                <i class="fa-solid fa-chevron-left"></i>
+            <button onclick="nextSlide()" class="bg-purple-100 hover:bg-purple-200 border border-purple-300 text-purple-900 w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 font-bold" aria-label="שקף הבא">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
             </button>
         </div>
 
-        <div class="flex items-center gap-3" id="indicators"></div>
+        <div class="flex items-center gap-2" id="indicators"></div>
 
-        <div class="text-slate-300 font-bold text-lg flex items-center gap-3">
-            <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>מעבר אוטומטי בלופ | SmartStart 2026</span>
+        <div class="text-xs text-purple-900 font-bold flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>מעבר אוטומטי כל 8 שניות | SmartStart © 2026</span>
         </div>
     </footer>
 
@@ -131,61 +144,56 @@
             {
                 badge1: "SmartStart",
                 badge2: "אקדמיה לעתיד הטכנולוגי",
-                title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300">מנהיגי הטכנולוגיה</span> של המחר',
-                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים ואינטראקטיביים. אנו מציעים מסלולי לימוד מרתקים המשלבים תכנות, בניית רובוטים וטכנולוגיות מתקדמות כמו IoT, בינה מלאכותית, פיתוח אפליקציות ועוד, תוך שימוש בשיטת Project-Based Learning.",
+                title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
+                desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים ואינטראקטיביים[cite: 1]. אנו מציעים מסלולי לימוד מרתקים המשלבים תכנות, בניית רובוטים וטכנולוגיות מתקדמות כמו IoT, בינה מלאכותית, פיתוח אפליקציות ועוד[cite: 1], תוך שימוש בשיטת Project-Based Learning[cite: 1].",
+                features: ["למידה מבוססת פרויקטים (PBL)[cite: 1]", "תכנות, רובוטיקה ו-AI[cite: 1]", "פיתוח חשיבה יצירתית ולוגית[cite: 1]", "חיבור לעולם העבודה המעודכן[cite: 1]"]
+            },
+            {
+                badge1: "כיתות ד' – ו'",
+                badge2: "15 מפגשים",
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">AI-MAKERS</span> (מייקרים מונעי בינה מלאכותית)',
+                desc: "בואו להוביל את המהפכה הטכנולוגית הבאה! כאן לא רק לומדים תיאוריה – בונים, מפרקים ויוצרים מערכות חכמות מאפס[cite: 1], תוך שימוש בכוחה של הבינה המלאכותית (AI) להעניק למערכות יכולת למידה, זיהוי ותגובה בזמן אמת[cite: 1].",
                 features: [
-                    "למידה מעשית מבוססת פרויקטים (PBL)",
-                    "שילוב תכנות, רובוטיקה ובינה מלאכותית (AI)",
-                    "פיתוח חשיבה יצירתית, אלגוריתמית ופתרון בעיות",
-                    "חיבור מעשי וישיר לעולם העבודה המעודכן"
+                    "יצירה עצמאית (DIY Tech): תכנון, חיישנים ומנועים[cite: 1]",
+                    "בינה מלאכותית: למידת מכונה וזיהוי סביבה[cite: 1]",
+                    "למידה מבוססת פרויקטים (PBL)[cite: 1]",
+                    "טכנולוגיות: App Inventor, Arduino/ESP32, Firebase[cite: 1]"
                 ]
             },
             {
                 badge1: "כיתות ד' – ו'",
                 badge2: "15 מפגשים",
-                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300">AI-MAKERS</span> (מייקרים מונעי AI)',
-                desc: "בואו להוביל את המהפכה הטכנולוגית הבאה! כאן לא רק לומדים תיאוריה – בונים, מפרקים ויוצרים מערכות חכמות מאפס, תוך שימוש בכוחה של הבינה המלאכותית (AI) להעניק למערכות יכולת למידה, זיהוי ותגובה בזמן אמת.",
+                title: 'מאסטרים ב-<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">Generative AI</span>',
+                desc: "קורס המפתח חשיבה אלגוריתמית ויצירתיות טכנולוגית[cite: 1]. התלמידים יתנסו בתכנון ופיתוח אפליקציות אינטראקטיביות מורכבות ב-App Inventor של MIT[cite: 1], החל משלב ה-UX/UI ועד להטמעה בטלפון הנייד[cite: 1].",
                 features: [
-                    "יצירה עצמאית (DIY Tech): תכנון, חיישנים ומנועים",
-                    "בינה מלאכותית: למידת מכונה וזיהוי סביבה בזמן אמת",
-                    "למידה מבוססת פרויקטים (PBL) לבניית תוצרים פועלים",
-                    "טכנולוגיות: App Inventor, Arduino/ESP32, Firebase"
-                ]
-            },
-            {
-                badge1: "כיתות ד' – ו'",
-                badge2: "15 מפגשים",
-                title: 'מאסטרים ב-<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300">Generative AI</span>',
-                desc: "קורס המפתח חשיבה אלגוריתמית ויצירתיות טכנולוגית. התלמידים יתנסו בתכנון ופיתוח אפליקציות אינטראקטיביות מורכבות ב-App Inventor של MIT, החל משלב ה-UX/UI ועד להטמעה בטלפון הנייד.",
-                features: [
-                    "שימוש בחיישנים: GPS, מד תאוצה ומצלמה",
-                    "שילוב מולטימדיה וממשקים חיצוניים (API)",
-                    "אחסון וניהול נתונים בזמן אמת בענן של Google",
-                    "שילוב יכולות AI: זיהוי עצמים, דיבור והבעות פנים"
+                    "שימוש בחיישנים: GPS, מד תאוצה ומצלמה[cite: 1]",
+                    "שילוב מולטימדיה וממשקים חיצוניים (API)[cite: 1]",
+                    "אחסון וניהול נתונים בענן Google[cite: 1]",
+                    "זיהוי עצמים, דיבור והבעות פנים ב-AI[cite: 1]"
                 ]
             },
             {
                 badge1: "גן חובה עד כיתות א' – ג'",
                 badge2: "מסלול יסודות",
-                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300">מהנדסים צעירים</span> (WeDo 2.0)',
-                desc: "הצעד הראשון של ילדיכם בעולם ההנדסה המודרנית! באמצעות סביבת הלמידה החווייתית WeDo 2.0 של חברת לגו, התלמידים יחקרו עקרונות פיזיקליים, ירכיבו רובוטים מתוחכמים ויפתחו מיומנויות תכנות בסיסיות.",
+                title: '<span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מהנדסים צעירים</span> (WeDo 2.0)',
+                desc: "הצעד הראשון של ילדיכם בעולם ההנדסה המודרנית! באמצעות סביבת הלמידה החווייתית WeDo 2.0 של חברת לגו[cite: 1], התלמידים יחקרו עקרונות פיזיקליים, ירכיבו רובוטים מתוחכמים ויפתחו מיומנויות תכנות בסיסיות[cite: 1].",
                 features: [
-                    "בניית רובוטים מלגו עם מנועים וחיישנים אינטראקטיביים",
-                    "תכנות בלוקים חזותי בסביבת WeDo 2.0 הידידותית",
-                    "חקר עקרונות הפיזיקה, המדעים ופיתוח מוטוריקה עדינה",
-                    "פרויקטים בנושאי חילוץ והצלה, בעלי חיים וסביבה"
+                    "בניית רובוטים מלגו עם מנועים וחיישנים[cite: 1]",
+                    "תכנות בלוקים חזותי בסביבת WeDo 2.0[cite: 1]",
+                    "חקר עקרונות הפיזיקה, מדעים ומוטוריקה עדינה[cite: 1]",
+                    "פרויקטים בנושאי חילוץ והצלה, בעלי חיים ומיחזור[cite: 1]"
                 ]
             },
             {
                 badge1: "כיתות ד' – ו'",
                 badge2: "מסלול שנתי",
-                title: 'חוקרי <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300">I.O.T ובינה מלאכותית</span>',
-                desc: "מסלול יוקרתי המקנה ארגז כלים טכנולוגי מהשורה הראשונה. התלמידים ילמדו להפוך רעיון למוצר עובד – מתכנות אפליקציות לבעלי מוגבלויות ועד ניהול צריכת המים והחשמל בבתים חכמים, תוך שילוב Arduino, ESP32, Firebase ו-AI.",
+                title: 'חוקרי <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">I.O.T ובינה מלאכותית</span>',
+                desc: "מסלול יוקרתי המקנה ארגז כלים טכנולוגי מהשורה הראשונה[cite: 1]. התלמידים ילמדו להפוך רעיון למוצר עובד – מתכנות אפליקציות לבעלי מוגבלויות ועד ניהול צריכת המים והחשמל בבתים חכמים[cite: 1], תוך שילוב Arduino, ESP32, Firebase ו-AI[cite: 1].",
                 features: [
-                    "תכנון וניהול פרויקטים מקיפים משלב הרעיון ועד המוצר",
-                    "שימוש ב-AI להתאמת חוויית המשתמש בבית החכם",
-                    "עבודה עם חיישני אור, לחות, טמפרטורה ואלקטרוניקה",
-                    "פיתוח אפליקציות וחיבור בזמן אמת למאגרי ענן"
+                    "תכנון וניהול פרויקטים משלב הרעיון עד הביצוע[cite: 1]",
+                    "שימוש ב-AI להתאמת חוויית משתמש בבית החכם[cite: 1]",
+                    "עבודה עם חיישני אור, לחות, טמפרטורה ואלקטרוניקה[cite: 1]",
+                    "פיתוח אפליקציות וחיבור בזמן אמת לענן[cite: 1]"
                 ]
             }
         ];
@@ -204,30 +212,30 @@
 
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
-                slideEl.className = `slide absolute inset-0 flex flex-col lg:flex-row items-center justify-between bg-slate-900/90 backdrop-blur-2xl border-2 border-slate-700/80 rounded-3xl p-8 md:p-12 shadow-2xl gap-8 ${index === currentIndex ? 'active' : ''}`;
+                slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-6 ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
-                    <div class="bg-slate-800/90 p-4 md:p-5 rounded-2xl border border-slate-700 flex items-center gap-4 shadow-lg">
-                        <span class="w-8 h-8 rounded-xl bg-pink-500 text-white text-base font-extrabold flex items-center justify-center shrink-0">✓</span>
-                        <span class="text-base md:text-xl font-bold text-slate-100">${f}</span>
+                    <div class="bg-purple-50/90 p-2 md:p-2.5 rounded-xl border border-purple-200 flex items-center gap-2 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
+                        <span class="w-4 h-4 md:w-5 md:h-5 rounded-full bg-pink-600 text-white text-[10px] flex items-center justify-center shrink-0">✓</span>
+                        <span class="truncate">${f}</span>
                     </div>
                 `).join('');
 
                 slideEl.innerHTML = `
-                    <div class="w-full lg:w-7/12 space-y-6 text-right">
-                        <div class="flex flex-wrap items-center gap-3">
-                            <span class="bg-pink-500/20 text-pink-300 px-5 py-2 rounded-2xl text-base md:text-lg font-black border border-pink-500/40">${slide.badge1}</span>
-                            <span class="bg-purple-500/20 text-purple-300 px-5 py-2 rounded-2xl text-base md:text-lg font-black border border-purple-500/40">${slide.badge2}</span>
+                    <div class="w-full lg:w-7/12 space-y-2 md:space-y-3.5 text-right overflow-hidden flex flex-col justify-center">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="bg-pink-100 text-pink-900 px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-black border border-pink-200">${slide.badge1}</span>
+                            <span class="bg-purple-100 text-purple-900 px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-black border border-purple-200">${slide.badge2}</span>
                         </div>
-                        <h2 class="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight">${slide.title}</h2>
-                        <p class="text-slate-300 text-lg md:text-2xl leading-relaxed font-normal">${slide.desc}</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <h2 class="text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
+                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4">${slide.desc}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
                             ${featuresHTML}
                         </div>
                     </div>
-                    <div class="w-full lg:w-5/12 flex justify-center items-center">
-                        <div class="w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tr from-indigo-900 via-slate-800 to-pink-950 rounded-3xl flex items-center justify-center border-4 border-slate-600 shadow-2xl floating-anim p-6">
-                            <img src="${logoImgUrl}" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/200'" />
+                    <div class="w-full lg:w-5/12 flex justify-center items-center shrink-0">
+                        <div class="w-40 h-40 md:w-64 md:h-64 bg-gradient-to-tr from-indigo-900 via-blue-800 to-indigo-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl floating-anim p-4">
+                            <img src="${logoImgUrl}" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
                         </div>
                     </div>
                 `;
@@ -235,7 +243,7 @@
                 viewport.appendChild(slideEl);
 
                 const dot = document.createElement('button');
-                dot.className = `h-4 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-500 w-12' : 'bg-slate-700 w-4'}`;
+                dot.className = `h-2.5 md:h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-6 md:w-8' : 'bg-purple-200 w-2.5 md:w-3'}`;
                 dot.onclick = () => goToSlide(index);
                 indicators.appendChild(dot);
             });
@@ -265,11 +273,11 @@
             
             if (isPlaying) {
                 icon.className = 'fa-solid fa-pause';
-                text.innerText = 'השהה';
+                text.innerText = 'השהה מצגת';
                 startAutoPlay();
             } else {
                 icon.className = 'fa-solid fa-play';
-                text.innerText = 'הפעל';
+                text.innerText = 'הפעל מצגת';
                 stopAutoPlay();
             }
         }
