@@ -23,34 +23,87 @@
             background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 50%, #e0f2fe 100%);
         }
         
+        /* --- אפקטי מעבר לשקף הראשי --- */
         .slide {
             display: none;
             opacity: 0;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: scale(0.97) translateY(10px);
+            pointer-events: none;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
         }
+
+        /* שקף פעיל */
         .slide.active {
             display: flex;
             opacity: 1;
-            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            transform: translateX(0) scale(1);
+            z-index: 20;
         }
 
+        /* מניתוח כיווניות המעבר (קדימה/אחורה) */
+        .slide.slide-next-out {
+            display: flex;
+            opacity: 0;
+            transform: translateX(80px) scale(0.92) rotate(-1deg);
+            z-index: 10;
+        }
+
+        .slide.slide-next-in {
+            transform: translateX(-80px) scale(0.92) rotate(1deg);
+        }
+
+        .slide.slide-prev-out {
+            display: flex;
+            opacity: 0;
+            transform: translateX(-80px) scale(0.92) rotate(1deg);
+            z-index: 10;
+        }
+
+        .slide.slide-prev-in {
+            transform: translateX(80px) scale(0.92) rotate(-1deg);
+        }
+
+        /* אפקט הופעה בהדרגה לרכיבים הפנימיים (Stagger) */
+        .slide.active .anim-element {
+            animation: slideInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .slide.active .anim-delay-1 { animation-delay: 0.1s; }
+        .slide.active .anim-delay-2 { animation-delay: 0.2s; }
+        .slide.active .anim-delay-3 { animation-delay: 0.3s; }
+        .slide.active .anim-delay-4 { animation-delay: 0.4s; }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* --- סליידר מדיה פנימי --- */
         .inner-media {
             display: none;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            transform: scale(0.95);
         }
         .inner-media.active {
             display: block;
             opacity: 1;
+            transform: scale(1);
         }
 
         @keyframes floatAnim {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-6px) rotate(0.5deg); }
+            50% { transform: translateY(-8px) rotate(0.8deg); }
         }
         .floating-anim {
-            animation: floatAnim 5s ease-in-out infinite;
+            animation: floatAnim 6s ease-in-out infinite;
         }
 
         .progress-bar-fill {
@@ -231,18 +284,15 @@
         let isPlaying = true;
         let progressInterval = null;
         let progressVal = 0;
-        const SLIDE_DURATION = 20000; // 20 שניות לשקף ראשי
+        const SLIDE_DURATION = 20000;
         let innerMediaIntervals = {};
+        let isTransitioning = false;
 
         function isVideoUrl(url) {
             return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i);
         }
 
-        function renderSlides() {
-            // ניקוי אינטרוולים פנימיים קודמים
-            Object.values(innerMediaIntervals).forEach(clearInterval);
-            innerMediaIntervals = {};
-
+        function initSlidesDOM() {
             const viewport = document.getElementById('slidesViewport');
             const indicators = document.getElementById('indicators');
             viewport.innerHTML = '';
@@ -250,6 +300,7 @@
 
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
+                slideEl.id = `slide-${index}`;
                 slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-8 ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
@@ -261,7 +312,6 @@
                     </div>
                 `).join('');
 
-                // בניית תמונות/סרטונים לסליידר פנימי
                 let mediaHTML = '';
                 if (slide.media && slide.media.length > 0) {
                     slide.media.forEach((mUrl, mIdx) => {
@@ -289,21 +339,19 @@
                 }
 
                 slideEl.innerHTML = `
-                    <!-- חלק המלל -->
                     <div class="w-full lg:w-6/12 space-y-2 md:space-y-4 text-right overflow-hidden flex flex-col justify-center">
-                        <div class="flex flex-wrap items-center gap-2">
+                        <div class="anim-element anim-delay-1 flex flex-wrap items-center gap-2">
                             <span class="bg-pink-100 text-pink-900 px-3 py-1 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
                             <span class="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
                         </div>
-                        <h2 class="text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
-                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4 md:line-clamp-5">${slide.desc}</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
+                        <h2 class="anim-element anim-delay-2 text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
+                        <p class="anim-element anim-delay-3 text-slate-600 text-xs md:text-sm leading-relaxed line-clamp-4 md:line-clamp-5">${slide.desc}</p>
+                        <div class="anim-element anim-delay-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
                             ${featuresHTML}
                         </div>
                     </div>
 
-                    <!-- חלק המדיה (סליידר פנימי מוגדל) -->
-                    <div class="w-full lg:w-6/12 h-64 md:h-80 lg:h-full flex justify-center items-center shrink-0">
+                    <div class="w-full lg:w-6/12 h-64 md:h-80 lg:h-full flex justify-center items-center shrink-0 anim-element anim-delay-2">
                         <div class="w-full h-full max-h-[420px] bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl floating-anim relative overflow-hidden">
                             ${mediaHTML}
                         </div>
@@ -312,42 +360,75 @@
 
                 viewport.appendChild(slideEl);
 
-                // נקודות אינדיקטור
                 const dot = document.createElement('button');
+                dot.id = `dot-${index}`;
                 dot.className = `h-2.5 md:h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-6 md:w-8' : 'bg-purple-200 w-2.5 md:w-3'}`;
                 dot.onclick = () => goToSlide(index);
                 indicators.appendChild(dot);
 
-                // הפעלת לולאת מדיה פנימית במידה ויש יותר מפריט אחד
                 if (slide.media && slide.media.length > 1) {
                     let currentMediaIdx = 0;
                     innerMediaIntervals[index] = setInterval(() => {
-                        if (index === currentIndex) { // רק בשקף האקטיבי
+                        if (index === currentIndex) {
                             const mediaItems = slideEl.querySelectorAll('.inner-media');
                             mediaItems[currentMediaIdx].classList.remove('active');
                             currentMediaIdx = (currentMediaIdx + 1) % mediaItems.length;
                             mediaItems[currentMediaIdx].classList.add('active');
                         }
-                    }, 4000); // מעבר בין מדיה למדיה כל 4 שניות בתוך השקף
+                    }, 4000);
                 }
             });
+        }
 
-            resetProgress();
+        function changeSlide(nextIdx, direction = 'next') {
+            if (isTransitioning || nextIdx === currentIndex) return;
+            isTransitioning = true;
+
+            const currentSlideEl = document.getElementById(`slide-${currentIndex}`);
+            const nextSlideEl = document.getElementById(`slide-${nextIdx}`);
+
+            const outClass = direction === 'next' ? 'slide-next-out' : 'slide-prev-out';
+            const inClass = direction === 'next' ? 'slide-next-in' : 'slide-prev-in';
+
+            // הכנת השקף הנכנס
+            nextSlideEl.classList.add(inClass);
+            nextSlideEl.style.display = 'flex';
+
+            // הטמעת מחלקת המעבר
+            requestAnimationFrame(() => {
+                currentSlideEl.classList.remove('active');
+                currentSlideEl.classList.add(outClass);
+
+                nextSlideEl.classList.remove(inClass);
+                nextSlideEl.classList.add('active');
+            });
+
+            // עדכון אינדיקטורים
+            document.getElementById(`dot-${currentIndex}`).className = 'h-2.5 md:h-3 rounded-full transition-all cursor-pointer bg-purple-200 w-2.5 md:w-3';
+            document.getElementById(`dot-${nextIdx}`).className = 'h-2.5 md:h-3 rounded-full transition-all cursor-pointer bg-pink-600 w-6 md:w-8';
+
+            setTimeout(() => {
+                currentSlideEl.classList.remove(outClass);
+                currentSlideEl.style.display = 'none';
+                currentIndex = nextIdx;
+                isTransitioning = false;
+                resetProgress();
+            }, 800); // תואם לזמן ה-transition ב-CSS (0.8s)
         }
 
         function goToSlide(index) {
-            currentIndex = index;
-            renderSlides();
+            const dir = index > currentIndex ? 'next' : 'prev';
+            changeSlide(index, dir);
         }
 
         function nextSlide() {
-            currentIndex = (currentIndex + 1) % slidesData.length;
-            renderSlides();
+            const nextIdx = (currentIndex + 1) % slidesData.length;
+            changeSlide(nextIdx, 'next');
         }
 
         function prevSlide() {
-            currentIndex = (currentIndex - 1 + slidesData.length) % slidesData.length;
-            renderSlides();
+            const prevIdx = (currentIndex - 1 + slidesData.length) % slidesData.length;
+            changeSlide(prevIdx, 'prev');
         }
 
         function togglePlay() {
@@ -376,11 +457,13 @@
             if (!isPlaying) return;
 
             progressInterval = setInterval(() => {
-                progressVal += (100 / (SLIDE_DURATION / 100));
-                document.getElementById('progressBar').style.width = `${Math.min(progressVal, 100)}%`;
-                
-                if (progressVal >= 100) {
-                    nextSlide();
+                if (!isTransitioning) {
+                    progressVal += (100 / (SLIDE_DURATION / 100));
+                    document.getElementById('progressBar').style.width = `${Math.min(progressVal, 100)}%`;
+                    
+                    if (progressVal >= 100) {
+                        nextSlide();
+                    }
                 }
             }, 100);
         }
@@ -417,7 +500,7 @@
             const container = document.getElementById('mediaInputsList');
             container.innerHTML = '';
 
-            mediaList.forEach((url, i) => {
+            mediaList.forEach((url) => {
                 addMediaInputRow(url);
             });
 
@@ -452,12 +535,14 @@
             });
 
             slidesData[slideIdx].media = newMedia;
-            renderSlides();
+            Object.values(innerMediaIntervals).forEach(clearInterval);
+            innerMediaIntervals = {};
+            initSlidesDOM();
             toggleEditMode();
         }
 
         window.onload = () => {
-            renderSlides();
+            initSlidesDOM();
             startAutoPlay();
         };
     </script>
