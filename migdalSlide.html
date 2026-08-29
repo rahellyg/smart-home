@@ -23,28 +23,38 @@
             background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 50%, #e0f2fe 100%);
         }
         
-        /* --- מעבר עדין ונקי בלבד (Simple Fade) --- */
+        /* --- אנימציית מעבר אלגנטית, חלקית ומקצועית (Crossfade) --- */
         .slide {
-            display: none;
+            position: absolute;
+            inset: 0;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            will-change: opacity;
+            visibility: hidden;
+            transform: scale(0.985) translateY(6px);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.8s linear;
+            will-change: opacity, transform, visibility;
+            pointer-events: none;
         }
 
         .slide.active {
-            display: flex;
             opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
         }
 
         /* --- סליידר מדיה פנימי עדין --- */
         .inner-media {
-            display: none;
+            position: absolute;
+            inset: 0;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.6s ease-in-out;
+            pointer-events: none;
         }
         .inner-media.active {
-            display: block;
             opacity: 1;
+            pointer-events: auto;
         }
 
         .progress-bar-fill {
@@ -227,15 +237,13 @@
         let progressVal = 0;
         const SLIDE_DURATION = 20000;
         let innerMediaIntervals = {};
+        let isDOMRendered = false;
 
         function isVideoUrl(url) {
             return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i);
         }
 
-        function renderSlides() {
-            Object.values(innerMediaIntervals).forEach(clearInterval);
-            innerMediaIntervals = {};
-
+        function initSlidesDOM() {
             const viewport = document.getElementById('slidesViewport');
             const indicators = document.getElementById('indicators');
             viewport.innerHTML = '';
@@ -244,7 +252,7 @@
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.id = `slide-${index}`;
-                slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-8 ${index === currentIndex ? 'active' : ''}`;
+                slideEl.className = `slide flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-8 ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
                     <div class="bg-purple-50/90 p-2 md:p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
@@ -261,13 +269,13 @@
                         const activeClass = mIdx === 0 ? 'active' : '';
                         if (isVideoUrl(mUrl)) {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full" data-media-idx="${mIdx}">
+                                <div class="inner-media ${activeClass} w-full h-full" data-media-idx="${mIdx}">
                                     <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-cover rounded-2xl"></video>
                                 </div>
                             `;
                         } else {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full flex items-center justify-center p-4 bg-slate-900/10 rounded-2xl" data-media-idx="${mIdx}">
+                                <div class="inner-media ${activeClass} w-full h-full flex items-center justify-center p-4 bg-slate-900/10 rounded-2xl" data-media-idx="${mIdx}">
                                     <img src="${mUrl}" alt="Media" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://via.placeholder.com/400x300?text=SmartStart'" />
                                 </div>
                             `;
@@ -275,7 +283,7 @@
                     });
                 } else {
                     mediaHTML = `
-                        <div class="inner-media active absolute inset-0 w-full h-full flex items-center justify-center p-4">
+                        <div class="inner-media active w-full h-full flex items-center justify-center p-4">
                             <img src="logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/300'" />
                         </div>
                     `;
@@ -304,7 +312,8 @@
                 viewport.appendChild(slideEl);
 
                 const dot = document.createElement('button');
-                dot.className = `h-2.5 md:h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-6 md:w-8' : 'bg-purple-200 w-2.5 md:w-3'}`;
+                dot.id = `dot-${index}`;
+                dot.className = `h-2.5 md:h-3 rounded-full transition-all duration-500 cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-6 md:w-8' : 'bg-purple-200 w-2.5 md:w-3'}`;
                 dot.onclick = () => goToSlide(index);
                 indicators.appendChild(dot);
 
@@ -321,22 +330,49 @@
                 }
             });
 
+            isDOMRendered = true;
+            resetProgress();
+        }
+
+        function updateActiveSlideClass() {
+            slidesData.forEach((_, idx) => {
+                const slideEl = document.getElementById(`slide-${idx}`);
+                const dotEl = document.getElementById(`dot-${idx}`);
+                
+                if (slideEl) {
+                    if (idx === currentIndex) {
+                        slideEl.classList.add('active');
+                    } else {
+                        slideEl.classList.remove('active');
+                    }
+                }
+
+                if (dotEl) {
+                    if (idx === currentIndex) {
+                        dotEl.className = 'h-2.5 md:h-3 rounded-full transition-all duration-500 cursor-pointer bg-pink-600 w-6 md:w-8';
+                    } else {
+                        dotEl.className = 'h-2.5 md:h-3 rounded-full transition-all duration-500 cursor-pointer bg-purple-200 w-2.5 md:w-3';
+                    }
+                }
+            });
+
             resetProgress();
         }
 
         function goToSlide(index) {
+            if (index === currentIndex) return;
             currentIndex = index;
-            renderSlides();
+            updateActiveSlideClass();
         }
 
         function nextSlide() {
             currentIndex = (currentIndex + 1) % slidesData.length;
-            renderSlides();
+            updateActiveSlideClass();
         }
 
         function prevSlide() {
             currentIndex = (currentIndex - 1 + slidesData.length) % slidesData.length;
-            renderSlides();
+            updateActiveSlideClass();
         }
 
         function togglePlay() {
@@ -441,12 +477,14 @@
             });
 
             slidesData[slideIdx].media = newMedia;
-            renderSlides();
+            Object.values(innerMediaIntervals).forEach(clearInterval);
+            innerMediaIntervals = {};
+            initSlidesDOM();
             toggleEditMode();
         }
 
         window.onload = () => {
-            renderSlides();
+            initSlidesDOM();
             startAutoPlay();
         };
     </script>
