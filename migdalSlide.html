@@ -38,14 +38,6 @@
             animation: floatAnim 4s ease-in-out infinite;
         }
 
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
-            50% { box-shadow: 0 0 50px rgba(236, 72, 153, 0.5); }
-        }
-        .glow-card {
-            animation: pulseGlow 4s infinite;
-        }
-
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -59,18 +51,16 @@
         }
 
         .progress-bar-fill {
-            transition: width 0.05s linear;
+            transition: width 0.1s linear;
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between text-slate-800 selection:bg-pink-500 selection:text-white">
 
     <header class="w-full py-3.5 px-4 md:px-8 flex flex-wrap justify-between items-center bg-white/90 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50 shadow-sm gap-3">
-        <!-- Logo Section with Image Logo -->
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-950 flex items-center justify-center p-1 shadow-lg border border-indigo-200 overflow-hidden">
-                <!-- תמונת הלוגו המקורית -->
-                <img src="IMAGE_URL_HERE" alt="SmartStart Logo" class="w-full h-full object-contain" />
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center p-1 shadow-lg border border-indigo-200 overflow-hidden">
+                <img id="headerLogoImg" src="logo.png" alt="SmartStart Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
             </div>
             <div>
                 <h1 class="text-base md:text-lg font-black tracking-wider text-indigo-950 leading-tight">SMARTSTART</h1>
@@ -78,7 +68,6 @@
             </div>
         </div>
 
-        <!-- Header Actions -->
         <div class="flex items-center gap-2 md:gap-3">
             <div class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-pink-50 to-purple-50 px-3 py-1.5 rounded-full border border-pink-200 text-xs text-purple-800 font-bold shadow-sm">
                 <span class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping"></span>
@@ -103,30 +92,28 @@
 
     <main class="flex-grow flex items-center justify-center p-3 md:p-6 relative">
         <div id="slidesViewport" class="w-full max-w-7xl mx-auto relative min-h-[580px] md:min-h-[640px] flex items-center justify-center">
-            <!-- Dynamic Slides rendered by JavaScript -->
         </div>
 
-        <!-- Edit Slide Drawer -->
         <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
-            <div class="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
+            <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
                 <div class="flex items-center justify-between border-b pb-4 mb-4 border-slate-200">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-purple-600 text-xl"></i>
-                        <h3 class="text-xl font-black text-slate-900">עורך השקופיות</h3>
+                        <h3 class="text-xl font-black text-slate-900">הגדרות תמונת לוגו</h3>
                     </div>
                     <button onclick="toggleEditMode()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">✕</button>
                 </div>
 
-                <div class="space-y-3.5 flex-grow" id="editForm">
+                <div class="space-y-4 flex-grow">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">קישור לתמונת הלוגו המקורית (URL)</label>
-                        <input type="text" id="editLogoUrl" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono dir-ltr text-left focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="https://example.com/logo.png">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">הכנס קישור לתמונה (URL או שם קובץ)</label>
+                        <input type="text" id="editLogoInput" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono dir-ltr text-left focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="logo.png">
                     </div>
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-slate-200">
                     <button onclick="updateLogoUrl()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:opacity-90 transition cursor-pointer">
-                        שמור קישור ללוגו
+                        עדכן תמונה
                     </button>
                 </div>
             </div>
@@ -147,36 +134,54 @@
 
         <div class="text-xs text-purple-900 font-bold flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>מעבר אוטומטי אינסופי כל 8 שניות | SmartStart © 2026</span>
+            <span>SmartStart © 2026</span>
         </div>
     </footer>
 
     <script>
-        let logoImgUrl = "IMAGE_URL_HERE";
+        // שנה את המשתנה הזה לשם הקובץ של התמונה שלך ב-GitHub
+        let logoImgUrl = "logo.png";
 
-        let slidesData = [
+        const slidesData = [
             {
                 badge1: "ערב הורים ורישום לקורסים 2026",
                 badge2: "מצגת פתיחה ראשית",
                 title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
                 desc: "הצטרפו לתוכנית העשרה מתקדמת המיועדת לפיתוח כישורים טכנולוגיים, חשיבה יצירתית ופתרון בעיות באמצעות פרויקטים מעשיים.",
-                features: ["שיטת PBL מעשית", "רובוטיקה, IoT ו-AI", "פיתוח חשיבה יצירתית", "הכנה לעולם העתיד"],
-                videoUrl: "https://video.aliexpress-media.com/play/u/ae_sg_item/17380998799/p/1/e/6/t/10301/1100092417021.mp4?from=chrome&definition=h265",
-                images: []
+                features: ["שיטת PBL מעשית", "רובוטיקה, IoT ו-AI", "פיתוח חשיבה יצירתית", "הכנה לעולם העתיד"]
+            },
+            {
+                badge1: "בית חכם & IoT",
+                badge2: "פרויקט מעשי",
+                title: 'שליטה בזמן אמת עם <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">ESP32 ו-Firebase</span>',
+                desc: "בניית מערכת ניהול חכמה המחוברת לענן, המאפשרת ניטור וצריכת חשמל אופטימלית בזמן אמת.",
+                features: ["חיבור בזמן אמת ל-Firebase", "שליטה בממסרים וצרכנים", "חיישני טמפרטורה וזיהוי נוכחות", "ממשק משתמש מתקדם ב-Web"]
             }
         ];
 
         let currentIndex = 0;
+        let isPlaying = true;
+        let slideInterval = null;
+        let progressInterval = null;
+        let progressVal = 0;
+        const SLIDE_DURATION = 8000; // 8 שניות לשקף
 
         function renderSlides() {
             const viewport = document.getElementById('slidesViewport');
+            const indicators = document.getElementById('indicators');
             viewport.innerHTML = '';
+            indicators.innerHTML = '';
 
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.className = `slide absolute inset-0 flex-col lg:flex-row items-center justify-between bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-5 md:p-8 shadow-2xl gap-6 ${index === currentIndex ? 'active' : ''}`;
                 
-                const imgElement = `<img src="${logoImgUrl}" alt="Logo" class="w-32 h-32 md:w-44 md:h-44 object-contain" onerror="this.src='https://placehold.co/200x200/0f172a/ffffff?text=Logo+Image'" />`;
+                const featuresHTML = slide.features.map(f => `
+                    <div class="bg-purple-50/90 p-2.5 rounded-xl border border-purple-200 flex items-center gap-2 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
+                        <span class="w-5 h-5 rounded-full bg-pink-600 text-white text-[10px] flex items-center justify-center shrink-0">✓</span>
+                        <span>${f}</span>
+                    </div>
+                `).join('');
 
                 slideEl.innerHTML = `
                     <div class="w-full lg:w-7/12 space-y-3.5 text-right">
@@ -186,33 +191,101 @@
                         </div>
                         <h2 class="text-2xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
                         <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${slide.desc}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
+                            ${featuresHTML}
+                        </div>
                     </div>
                     <div class="w-full lg:w-5/12 flex justify-center">
                         <div class="w-52 h-52 md:w-72 md:h-72 bg-gradient-to-tr from-indigo-900 via-blue-800 to-indigo-950 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl floating-anim p-4">
-                            ${imgElement}
+                            <img src="${logoImgUrl}" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'" />
                         </div>
                     </div>
                 `;
 
                 viewport.appendChild(slideEl);
+
+                // יצירת אינדיקטורים בתחתית (נקודות)
+                const dot = document.createElement('button');
+                dot.className = `w-3 h-3 rounded-full transition-all cursor-pointer ${index === currentIndex ? 'bg-pink-600 w-8' : 'bg-purple-200'}`;
+                dot.onclick = () => goToSlide(index);
+                indicators.appendChild(dot);
             });
+
+            resetProgress();
+        }
+
+        function goToSlide(index) {
+            currentIndex = index;
+            renderSlides();
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % slidesData.length;
+            renderSlides();
+        }
+
+        function prevSlide() {
+            currentIndex = (currentIndex - 1 + slidesData.length) % slidesData.length;
+            renderSlides();
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const icon = document.getElementById('playPauseIcon');
+            const text = document.getElementById('playPauseText');
+            
+            if (isPlaying) {
+                icon.className = 'fa-solid fa-pause';
+                text.innerText = 'השהה מצגת';
+                startAutoPlay();
+            } else {
+                icon.className = 'fa-solid fa-play';
+                text.innerText = 'הפעל מצגת';
+                stopAutoPlay();
+            }
+        }
+
+        function resetProgress() {
+            progressVal = 0;
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        function startAutoPlay() {
+            stopAutoPlay();
+            if (!isPlaying) return;
+
+            progressInterval = setInterval(() => {
+                progressVal += (100 / (SLIDE_DURATION / 100));
+                document.getElementById('progressBar').style.width = `${Math.min(progressVal, 100)}%`;
+                
+                if (progressVal >= 100) {
+                    nextSlide();
+                }
+            }, 100);
+        }
+
+        function stopAutoPlay() {
+            clearInterval(progressInterval);
         }
 
         function toggleEditMode() {
-            const drawer = document.getElementById('editDrawer');
-            drawer.classList.toggle('hidden');
+            document.getElementById('editDrawer').classList.toggle('hidden');
         }
 
         function updateLogoUrl() {
-            const val = document.getElementById('editLogoUrl').value;
-            if (val) {
-                logoImgUrl = val;
+            const inputVal = document.getElementById('editLogoInput').value;
+            if (inputVal) {
+                logoImgUrl = inputVal;
+                document.getElementById('headerLogoImg').src = inputVal;
                 renderSlides();
                 toggleEditMode();
             }
         }
 
-        window.onload = renderSlides;
+        window.onload = () => {
+            renderSlides();
+            startAutoPlay();
+        };
     </script>
 </body>
 </html>
