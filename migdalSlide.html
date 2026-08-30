@@ -163,10 +163,6 @@
     </footer>
 
     <script>
-        /* 
-           כאן תוכל להגדיר עד 10 תמונות/סרטונים בתיקיית img/ לכל קורס.
-           הקוד ירוץ דינמית רק על הקבצים שקיימים ברשימה!
-        */
         const slidesData = [
             {
                 title: 'מפתחים את <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600">מנהיגי הטכנולוגיה</span> של המחר',
@@ -282,11 +278,13 @@
             slidesData.forEach((slide, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.id = `slide-${index}`;
-                slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-5 md:p-8 shadow-2xl gap-6 md:gap-8 items-center overflow-hidden ${index === currentIndex ? 'active' : ''}`;
+                
+                // שינוי עיקרי: הגדרת grid התואם בדיוק לגובה החלון ומניעת חריגה
+                slideEl.className = `slide grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-2xl border-2 border-purple-200/80 rounded-3xl p-4 md:p-6 shadow-2xl gap-4 md:gap-6 items-stretch max-h-full overflow-hidden ${index === currentIndex ? 'active' : ''}`;
                 
                 const featuresHTML = slide.features.map(f => `
-                    <div class="bg-purple-50/90 p-2.5 rounded-xl border border-purple-200 flex items-center gap-2.5 shadow-sm text-xs md:text-sm font-semibold text-slate-800">
-                        <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-500 to-purple-600 text-white text-xs flex items-center justify-center shrink-0 shadow-sm">
+                    <div class="bg-purple-50/90 p-2 rounded-xl border border-purple-200 flex items-center gap-2 shadow-sm text-xs font-semibold text-slate-800">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-tr from-pink-500 to-purple-600 text-white text-[10px] flex items-center justify-center shrink-0 shadow-sm">
                             <i class="${f.icon}"></i>
                         </span>
                         <span class="truncate">${f.text}</span>
@@ -299,13 +297,13 @@
                         const activeClass = mIdx === 0 ? 'active' : '';
                         if (isVideoUrl(mUrl)) {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full p-2" data-media-idx="${mIdx}">
+                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full p-1" data-media-idx="${mIdx}">
                                     <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-cover rounded-xl shadow-inner"></video>
                                 </div>
                             `;
                         } else {
                             mediaHTML += `
-                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full flex items-center justify-center p-2" data-media-idx="${mIdx}">
+                                <div class="inner-media ${activeClass} absolute inset-0 w-full h-full flex items-center justify-center p-1" data-media-idx="${mIdx}">
                                     <img src="${mUrl}" alt="Media ${mIdx+1}" class="w-full h-full object-cover rounded-xl shadow-sm" onerror="this.onerror=null; this.src='img/logo.png';" />
                                 </div>
                             `;
@@ -321,21 +319,21 @@
 
                 slideEl.innerHTML = `
                     <!-- עמודת תוכן -->
-                    <div class="space-y-3 md:space-y-4 text-right flex flex-col justify-center h-full">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="bg-pink-100 text-pink-900 px-3 py-1 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
-                            <span class="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
+                    <div class="space-y-2 md:space-y-3 text-right flex flex-col justify-center h-full overflow-hidden">
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <span class="bg-pink-100 text-pink-900 px-3 py-0.5 rounded-full text-xs font-black border border-pink-200">${slide.badge1}</span>
+                            <span class="bg-purple-100 text-purple-900 px-3 py-0.5 rounded-full text-xs font-black border border-purple-200">${slide.badge2}</span>
                         </div>
-                        <h2 class="text-xl md:text-3xl font-black text-slate-900 leading-snug">${slide.title}</h2>
-                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed">${slide.desc}</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
+                        <h2 class="text-lg md:text-2xl font-black text-slate-900 leading-snug shrink-0">${slide.title}</h2>
+                        <p class="text-slate-600 text-xs md:text-sm leading-relaxed overflow-y-auto max-h-[140px] md:max-h-none">${slide.desc}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1 shrink-0">
                             ${featuresHTML}
                         </div>
                     </div>
 
-                    <!-- עמודת מדיה (תמיכה דינמית ברשימת התמונות) -->
-                    <div class="w-full flex justify-center items-center h-full mb-4 md:mb-6">
-                        <div class="w-full h-[300px] md:h-[430px] max-h-[55vh] relative rounded-2xl md:rounded-3xl bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 border-4 border-white shadow-xl overflow-hidden shrink-0">
+                    <!-- עמודת מדיה -->
+                    <div class="w-full h-full flex justify-center items-center min-h-[220px] md:min-h-0">
+                        <div class="w-full h-full relative rounded-2xl md:rounded-3xl bg-gradient-to-tr from-indigo-950 via-slate-900 to-purple-950 border-4 border-white shadow-xl overflow-hidden">
                             ${mediaHTML}
                         </div>
                     </div>
@@ -361,7 +359,7 @@
                                 mediaItems[currentMediaIdx].classList.add('active');
                             }
                         }
-                    }, 4000); // תמונות מתחלפות כל 4 שניות בתוך השקף
+                    }, 4000);
                 }
             });
 
