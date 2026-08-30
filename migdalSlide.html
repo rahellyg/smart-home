@@ -302,13 +302,13 @@
                         if (isVideoUrl(mUrl)) {
                             mediaHTML += `
                                 <div class="inner-media ${activeClass} absolute inset-0 w-full h-full p-1" data-media-idx="${mIdx}">
-                                    <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-cover rounded-xl shadow-inner"></video>
+                                    <video src="${mUrl}" autoplay loop muted playsinline class="w-full h-full object-contain rounded-xl shadow-inner"></video>
                                 </div>
                             `;
                         } else {
                             mediaHTML += `
                                 <div class="inner-media ${activeClass} absolute inset-0 w-full h-full flex items-center justify-center p-1" data-media-idx="${mIdx}">
-                                    <img src="${mUrl}" alt="Media ${mIdx+1}" class="w-full h-full object-cover rounded-xl shadow-sm" onerror="this.onerror=null; this.src='img/logo.png';" />
+                                    <img src="${mUrl}" alt="Media ${mIdx+1}" class="w-full h-full object-contain rounded-xl shadow-sm" onerror="this.onerror=null; this.src='img/logo.png';" />
                                 </div>
                             `;
                         }
