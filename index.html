@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>בית חכם - לוח בקרה מתקדם</title>
+  <title>בית חכם - לוח בקרה</title>
   
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -11,64 +11,67 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; }
-    .container { max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    body { background-color: #f0f2f5; color: #333; padding: 20px; display: flex; justify-content: center; }
+    .container { max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
     
-    .card { background: #1e293b; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid #334155; }
-    h2 { color: #38bdf8; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+    .card { background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    h2 { color: #1a73e8; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #f0f2f5; padding-bottom: 8px; }
     
-    .header-card { display: flex; justify-content: space-between; align-items: center; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #ef4444; transition: background 0.3s; }
-    .status-dot.online { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-    .header-qr-box { background: #fff; padding: 6px; border-radius: 8px; text-align: center; }
-    .qr-caption { font-size: 0.65rem; color: #0f172a; font-weight: bold; }
+    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .sensor-card { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 160px; }
+    .sensor-title { font-size: 0.85rem; color: #6c757d; margin-bottom: 5px; }
+    .sensor-value { font-size: 1.1rem; font-weight: bold; color: #212529; margin-top: 5px; }
 
-    /* רשת החיישנים הויזואלית */
-    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; }
-    .sensor-card { background: #0f172a; padding: 15px; border-radius: 14px; border: 1px solid #334155; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 160px; }
-    .sensor-title { font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; }
-    .sensor-value { font-size: 1.1rem; font-weight: bold; margin-top: 5px; }
-
-    /* 1. מד טמפרטורה (מדחום) */
-    .thermometer { width: 14px; height: 70px; background: #334155; border-radius: 10px; position: relative; display: flex; align-items: flex-end; justify-content: center; margin: 5px 0; }
+    /* 1. מד טמפרטורה (מדחום ויזואלי) */
+    .thermometer { width: 14px; height: 70px; background: #e9ecef; border-radius: 10px; position: relative; display: flex; align-items: flex-end; justify-content: center; margin: 5px 0; border: 1px solid #ced4da; }
     .thermometer-fill { width: 100%; height: var(--temp-percent, 0%); background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 10px; transition: height 0.5s ease-out; }
     
     /* 2. מד לחות (טבעת התקדמות) */
     .progress-ring { position: relative; width: 65px; height: 65px; }
     .progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
     .progress-ring circle { fill: none; stroke-width: 6; stroke-dasharray: 175; stroke-dashoffset: 175; transition: stroke-dashoffset 0.5s ease-out; }
-    .progress-ring .bg { stroke: #334155; stroke-dashoffset: 0; }
-    .progress-ring .meter { stroke: #06b6d4; }
-    .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.85rem; font-weight: bold; }
+    .progress-ring .bg { stroke: #e9ecef; stroke-dashoffset: 0; }
+    .progress-ring .meter { stroke: #0284c7; }
+    .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.85rem; font-weight: bold; color: #212529; }
 
-    /* 3. מד מים (אפקט גל) */
-    .water-container { width: 50px; height: 65px; border: 2px solid #38bdf8; border-radius: 8px; position: relative; overflow: hidden; background: #0f172a; }
-    .water-fill { position: absolute; bottom: 0; width: 100%; height: var(--water-percent, 0%); background: #38bdf8; transition: height 0.5s ease; opacity: 0.8; }
+    /* 3. מד מים (מיכל מים דינמי) */
+    .water-container { width: 45px; height: 65px; border: 2px solid #0284c7; border-radius: 8px; position: relative; overflow: hidden; background: #e0f2fe; }
+    .water-fill { position: absolute; bottom: 0; width: 100%; height: var(--water-percent, 0%); background: #0284c7; transition: height 0.5s ease; opacity: 0.85; }
 
     /* 4. מד גז (סקאלה) */
-    .gauge-bar { width: 100%; height: 12px; background: #334155; border-radius: 6px; overflow: hidden; margin-top: 15px; position: relative; }
+    .gauge-bar { width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 15px; position: relative; border: 1px solid #ced4da; }
     .gauge-fill { height: 100%; width: var(--gas-percent, 0%); background: linear-gradient(to right, #22c55e, #eab308, #ef4444); transition: width 0.5s ease; }
 
-    /* 5. רדאר תנועה */
-    .radar-box { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; border: 2px solid #334155; position: relative; display: flex; align-items: center; justify-content: center; }
-    .radar-box.active { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+    /* 5. רדאר תנועה פועם */
+    .radar-box { width: 50px; height: 50px; border-radius: 50%; background: #e9ecef; border: 2px solid #ced4da; position: relative; display: flex; align-items: center; justify-content: center; }
+    .radar-box.active { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); }
     .radar-wave { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #ef4444; opacity: 0; }
     .radar-box.active .radar-wave { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
 
     /* בקרות שליטה */
-    .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-    .btn { padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: all 0.2s; background: #334155; color: #f8fafc; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    .btn.active { background: #22c55e; color: white; box-shadow: 0 0 12px rgba(34, 197, 94, 0.4); }
-    .btn-rgb.active { background: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
+    .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .btn { padding: 15px; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; background: #e9ecef; color: #495057; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .btn.active { background: #28a745; color: white; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
+    .btn-rgb.active { background: #6f42c1; color: white; box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3); }
     
-    .color-picker-card, .slider-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 12px; }
-    .color-picker-card input[type="color"] { border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; background: none; }
-    .slider-card input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+    .color-picker-card, .slider-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; }
+    .color-picker-card input[type="color"] { border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; background: none; }
+    .slider-card input[type="range"] { width: 100%; accent-color: #1a73e8; cursor: pointer; }
 
     .passcode-box { display: flex; gap: 10px; margin-top: 10px; }
-    .passcode-input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; text-align: center; font-weight: bold; font-size: 1.1rem; letter-spacing: 2px; }
-    .passcode-btn { padding: 10px 18px; background: #38bdf8; color: #0f172a; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+    .passcode-input { flex: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 1rem; text-align: center; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+    .passcode-btn { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; transition: background 0.3s; }
+    .status-dot.online { background: #28a745; }
+
+    .header-card { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+    .header-info { display: flex; flex-direction: column; gap: 6px; }
+    .header-qr-box { display: flex; flex-direction: column; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 12px; border: 1px solid #e9ecef; box-shadow: 0 2px 6px rgba(0,0,0,0.04); transition: transform 0.2s; }
+    .header-qr-box:hover { transform: scale(1.05); }
+    #qrcode img { border-radius: 6px; display: block; }
+    .qr-caption { font-size: 0.7rem; color: #6c757d; margin-top: 4px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -76,15 +79,16 @@
 <div class="container">
 
   <div class="card header-card">
-    <div>
-      <h1 style="font-size: 1.3rem;">🏠 בית חכם - לוח בקרה</h1>
-      <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
-        סטטוס תקשורת: <span id="status-dot" class="status-dot"></span>
+    <div class="header-info">
+      <h1 style="font-size: 1.4rem;">🏠 בית חכם - לוח בקרה</h1>
+      <div style="font-size: 0.95rem; color: #495057;">
+        סטטוס: <span id="status-dot" class="status-dot"></span>
       </div>
     </div>
+    
     <div class="header-qr-box">
       <div id="qrcode"></div>
-      <span class="qr-caption">סרוק לנייד 📱</span>
+      <span class="qr-caption">סרוק לגישה 📱</span>
     </div>
   </div>
 
@@ -112,7 +116,7 @@
       </div>
 
       <div class="sensor-card">
-        <div class="sensor-title">מפלס מים 🌧️</div>
+        <div class="sensor-title">חיישן מים 🌧️</div>
         <div class="water-container">
           <div class="water-fill" id="water-fill"></div>
         </div>
@@ -131,25 +135,26 @@
         <div class="sensor-title">זיהוי תנועה 🏃</div>
         <div class="radar-box" id="radar-box">
           <div class="radar-wave"></div>
-          <span style="font-size:1.2rem;">📡</span>
+          <span style="font-size: 1.2rem;">📡</span>
         </div>
         <div class="sensor-value" id="motion-text">שקט</div>
       </div>
 
       <div class="sensor-card">
         <div class="sensor-title">RFID אחרון 💳</div>
-        <div style="font-size: 2rem; margin: 10px 0;">🆔</div>
-        <div class="sensor-value" id="rfid" style="font-size: 0.9rem;">--</div>
+        <div style="font-size: 1.8rem; margin: 8px 0;">💳</div>
+        <div class="sensor-value" id="rfid" style="font-size: 1rem;">--</div>
       </div>
 
     </div>
   </div>
 
   <div class="card">
-    <h2>🔐 הגדרת קוד דלת</h2>
+    <h2>🔐 הגדרת קוד דלת (לחצנים)</h2>
+    <small style="color: #6c757d;">הכנס רצף של L (לחצן שמאל) ו-R (לחצן ימין). דוגמה: LRLR</small>
     <div class="passcode-box">
       <input type="text" id="doorCodeInput" class="passcode-input" placeholder="LRLR" maxlength="10">
-      <button class="passcode-btn" onclick="saveDoorCode()">שמור</button>
+      <button class="passcode-btn" onclick="saveDoorCode()">שמור קוד</button>
     </div>
   </div>
 
@@ -163,7 +168,7 @@
       </button>
 
       <div class="color-picker-card">
-        <span style="font-size: 0.75rem; color: #94a3b8;">צבע RGB 🎨</span>
+        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">בחירת צבע 🎨</span>
         <input type="color" id="rgbColorPicker" value="#ffffff" onchange="changeRgbColor(this.value)">
       </div>
 
@@ -188,7 +193,7 @@
       </button>
 
       <div class="slider-card" style="grid-column: span 2;">
-        <span style="font-size: 0.8rem; color: #94a3b8;">מאוורר 💨: <strong id="fanSpeedValue" style="color: #fff;">0%</strong></span>
+        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">עוצמת מאוורר 💨: <span id="fanSpeedValue">0%</span></span>
         <input type="range" id="fanSlider" min="0" max="255" value="0" oninput="updateFanSpeed(this.value)">
       </div>
 
@@ -212,32 +217,37 @@
   const db = firebase.database();
 
   let controlsState = {
-    rgbLed: false, rgbColor: "#ffffff", yellowLed: false,
-    doorOpen: false, windowOpen: false, buzzer: false,
-    fanSpeed: 0, passcode: "LRLR"
+    rgbLed: false,
+    rgbColor: "#ffffff",
+    yellowLed: false,
+    doorOpen: false,
+    windowOpen: false,
+    buzzer: false,
+    fanSpeed: 0,
+    passcode: "LRLR"
   };
 
   window.addEventListener('DOMContentLoaded', () => {
     new QRCode(document.getElementById("qrcode"), {
       text: window.location.href,
-      width: 60, height: 60
+      width: 70,
+      height: 70
     });
   });
 
-  // קריאה ועדכון ויזואלי בזמן אמת של החיישנים
   db.ref('sensors').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
       document.getElementById('status-dot').className = "status-dot online";
       
-      // 1. טמפרטורה (טווח של 0-50 מעלות לצורך המד הויזואלי)
+      // 1. טמפרטורה (טווח מדחום 0-50 מעלות)
       if (data.temperature !== undefined) {
         document.getElementById('temp').innerText = data.temperature;
         const tempPercent = Math.min(Math.max((data.temperature / 50) * 100, 0), 100);
         document.getElementById('temp-fill').style.setProperty('--temp-percent', tempPercent + '%');
       }
 
-      // 2. לחות (טבעת היקפית)
+      // 2. לחות (עיגול התקדמות היקפי)
       if (data.humidity !== undefined) {
         document.getElementById('humidity-text').innerText = data.humidity + '%';
         const circle = document.getElementById('humidity-circle');
@@ -245,7 +255,7 @@
         circle.style.strokeDashoffset = offset;
       }
 
-      // 3. מים (נורמליזציה מתוך ערך אנלוגי טיפוסי 0-1024 או אחוזים)
+      // 3. מים (נורמליזציה מתוך ערך אנלוגי 0-1024 או אחוזים)
       if (data.water !== undefined) {
         const waterVal = typeof data.water === 'number' ? data.water : 0;
         const waterPercent = waterVal > 100 ? Math.min((waterVal / 1024) * 100, 100) : waterVal;
@@ -265,22 +275,22 @@
       const radar = document.getElementById('radar-box');
       if (data.motion) {
         radar.classList.add('active');
-        document.getElementById('motion-text').innerText = "זיהוי!";
-        document.getElementById('motion-text').style.color = "#ef4444";
+        document.getElementById('motion-text').innerText = "זיהה תנועה!";
+        document.getElementById('motion-text').style.color = "#dc3545";
       } else {
         radar.classList.remove('active');
         document.getElementById('motion-text').innerText = "שקט";
-        document.getElementById('motion-text').style.color = "#f8fafc";
+        document.getElementById('motion-text').style.color = "#212529";
       }
 
       // 6. RFID
       document.getElementById('rfid').innerText = data.lastRFID || "אין";
     }
-  }, () => {
+  }, (error) => {
+    console.error("Sensor read error:", error);
     document.getElementById('status-dot').className = "status-dot";
   });
 
-  // סנכרון הבקרות
   db.ref('controls').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -298,10 +308,16 @@
 
     if (controlsState.fanSpeed !== undefined) {
       document.getElementById('fanSlider').value = controlsState.fanSpeed;
-      document.getElementById('fanSpeedValue').innerText = Math.round((controlsState.fanSpeed / 255) * 100) + "%";
+      const percentage = Math.round((controlsState.fanSpeed / 255) * 100);
+      document.getElementById('fanSpeedValue').innerText = percentage + "%";
     }
-    if (controlsState.rgbColor) document.getElementById('rgbColorPicker').value = controlsState.rgbColor;
-    if (controlsState.passcode) document.getElementById('doorCodeInput').value = controlsState.passcode;
+
+    if (controlsState.rgbColor) {
+      document.getElementById('rgbColorPicker').value = controlsState.rgbColor;
+    }
+    if (controlsState.passcode) {
+      document.getElementById('doorCodeInput').value = controlsState.passcode;
+    }
   }
 
   function updateBtn(btnId, lblId, state, activeText, inactiveText) {
@@ -317,27 +333,33 @@
   }
 
   function toggleDevice(device) {
-    db.ref('controls/' + device).set(!controlsState[device]);
+    const newValue = !controlsState[device];
+    db.ref('controls/' + device).set(newValue);
   }
 
   function updateFanSpeed(val) {
     const speed = parseInt(val);
-    document.getElementById('fanSpeedValue').innerText = Math.round((speed / 255) * 100) + "%";
+    const percentage = Math.round((speed / 255) * 100);
+    document.getElementById('fanSpeedValue').innerText = percentage + "%";
     db.ref('controls/fanSpeed').set(speed);
   }
 
   function changeRgbColor(hexColor) {
     db.ref('controls/rgbColor').set(hexColor);
-    if (!controlsState.rgbLed) db.ref('controls/rgbLed').set(true);
+    if (!controlsState.rgbLed) {
+      db.ref('controls/rgbLed').set(true);
+    }
   }
 
   function saveDoorCode() {
-    let code = document.getElementById('doorCodeInput').value.trim().toUpperCase().replace(/[^LR]/g, '');
+    let code = document.getElementById('doorCodeInput').value.trim().toUpperCase();
+    code = code.replace(/[^LR]/g, '');
     if (code.length > 0) {
       db.ref('controls/passcode').set(code);
-      alert('הקוד עודכן: ' + code);
+      document.getElementById('doorCodeInput').value = code;
+      alert('הקוד עודכן בהצלחה: ' + code);
     } else {
-      alert('נא להזין קוד המכיל L ו-R בלבד');
+      alert('יש להזין קוד התקף המכיל רק את האותיות L ו-R');
     }
   }
 </script>
