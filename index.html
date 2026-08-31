@@ -1,312 +1,129 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>בית חכם - לוח בקרה</title>
-  
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <!-- ספרייה ליצירת QR Code -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f0f2f5; color: #333; padding: 20px; display: flex; justify-content: center; }
-    .container { max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStart - אקדמיה לעתיד הטכנולוגי</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    .card { background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    h2 { color: #1a73e8; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #f0f2f5; padding-bottom: 8px; }
-    
-    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-    .sensor-card { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; text-align: center; }
-    .sensor-title { font-size: 0.85rem; color: #6c757d; margin-bottom: 5px; }
-    .sensor-value { font-size: 1.3rem; font-weight: bold; color: #212529; }
-    
-    .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-    .btn { padding: 15px; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; background: #e9ecef; color: #495057; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    .btn.active { background: #28a745; color: white; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
-    .btn-rgb.active { background: #6f42c1; color: white; box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3); }
-    
-    .color-picker-card, .slider-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; }
-    .color-picker-card input[type="color"] { border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; background: none; }
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 50%, #e0f2fe 100%);
+        }
+        
+        .slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.985) translateY(6px);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.8s linear;
+            will-change: opacity, transform, visibility;
+            pointer-events: none;
+        }
 
-    /* עיצוב הסליידר */
-    .slider-card input[type="range"] { width: 100%; accent-color: #1a73e8; cursor: pointer; }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
 
-    .passcode-box { display: flex; gap: 10px; margin-top: 10px; }
-    .passcode-input { flex: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 1rem; text-align: center; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
-    .passcode-btn { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .inner-media {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            pointer-events: none;
+        }
+        .inner-media.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; }
-    .status-dot.online { background: #28a745; }
+        .progress-bar-fill {
+            transition: width 0.1s linear;
+        }
 
-    /* עיצוב ייעודי לברקוד בכותרת */
-    .header-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-    }
+        /* --- אנימציות לחיישנים הויזואליים --- */
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-25%); }
+            100% { transform: translateX(0); }
+        }
+        .animate-wave {
+            animation: wave 4s ease-in-out infinite;
+        }
 
-    .header-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .header-qr-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #f8f9fa;
-      padding: 8px;
-      border-radius: 12px;
-      border: 1px solid #e9ecef;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      transition: transform 0.2s;
-    }
-
-    .header-qr-box:hover {
-      transform: scale(1.05);
-    }
-
-    #qrcode img {
-      border-radius: 6px;
-      display: block;
-    }
-
-    .qr-caption {
-      font-size: 0.7rem;
-      color: #6c757d;
-      margin-top: 4px;
-      font-weight: 600;
-    }
-  </style>
+        @keyframes radar-sweep {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-radar {
+            animation: radar-sweep 3s linear infinite;
+        }
+    </style>
 </head>
-<body>
+<body class="h-screen w-screen flex flex-col justify-between text-slate-800 selection:bg-pink-500 selection:text-white overflow-hidden">
 
-<div class="container">
+    <header class="w-full py-2.5 px-4 md:px-8 flex items-center justify-between bg-white/90 backdrop-blur-md border-b border-purple-100 shrink-0 shadow-sm z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white flex items-center justify-center p-1 shadow-lg border border-indigo-200 shrink-0">
+                <img id="headerLogoImg" src="img/logo.png" alt="SmartStart Logo" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150?text=SmartStart'" />
+            </div>
+            <div>
+                <h1 class="text-base md:text-xl font-black tracking-wider text-indigo-950 leading-tight">SMARTSTART</h1>
+                <p class="text-[10px] md:text-xs text-pink-600 font-bold tracking-wide">FUTURE TECH LEADERS</p>
+            </div>
+        </div>
 
-  <!-- כרטיסיית כותרת עם QR Code משולב -->
-  <div class="card header-card">
-    <div class="header-info">
-      <h1 style="font-size: 1.4rem;">🏠 בית חכם - לוח בקרה</h1>
-      <div style="font-size: 0.95rem; color: #495057;">
-        סטטוס: <span id="status-dot" class="status-dot"></span>
-      </div>
+        <div class="flex items-center gap-2 md:gap-3">
+            <div class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-pink-50 to-purple-50 px-3 py-1.5 rounded-full border border-pink-200 text-xs text-purple-800 font-bold shadow-sm">
+                <span class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping"></span>
+                <span>ערב הורים ורישום 2026</span>
+            </div>
+
+            <button id="toggleEditBtn" onclick="toggleEditMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <i class="fa-solid fa-pen-to-square text-pink-400"></i>
+                <span id="editBtnText">מצב עריכה</span>
+            </button>
+
+            <button id="pausePlayBtn" onclick="togglePlay()" class="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all shadow-md shadow-purple-500/25 flex items-center gap-2 cursor-pointer active:scale-95">
+                <i id="playPauseIcon" class="fa-solid fa-pause"></i>
+                <span id="playPauseText" class="hidden md:inline">השהה מצגת</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="w-full bg-purple-100/50 h-1.5 shrink-0 relative overflow-hidden">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 w-0 progress-bar-fill"></div>
     </div>
-    
-    <div class="header-qr-box">
-      <div id="qrcode"></div>
-      <span class="qr-caption">סרוק לגישה 📱</span>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>📊 נתוני חיישנים (Realtime)</h2>
-    <div class="sensor-grid">
-      <div class="sensor-card">
-        <div class="sensor-title">טמפרטורה 🌡️</div>
-        <div class="sensor-value"><span id="temp">--</span> °C</div>
-      </div>
-      <div class="sensor-card">
-        <div class="sensor-title">לחות 💧</div>
-        <div class="sensor-value"><span id="humidity">--</span> %</div>
-      </div>
-      <div class="sensor-card">
-        <div class="sensor-title">חיישן גז ⚠️</div>
-        <div class="sensor-value" id="gas">--</div>
-      </div>
-      <div class="sensor-card">
-        <div class="sensor-title">חיישן מים 🌧️</div>
-        <div class="sensor-value" id="water">--</div>
-      </div>
-      <div class="sensor-card">
-        <div class="sensor-title">זיהוי תנועה 🏃</div>
-        <div class="sensor-value" id="motion">--</div>
-      </div>
-      <div class="sensor-card">
-        <div class="sensor-title">RFID אחרון 💳</div>
-        <div class="sensor-value" id="rfid" style="font-size: 1rem;">--</div>
-      </div>
-    </div>
-  </div>
+    <main class="flex-grow flex items-center justify-center p-3 md:p-6 relative overflow-hidden">
+        <div id="slidesViewport" class="w-full h-full max-w-7xl mx-auto relative flex items-center justify-center">
+            </div>
 
-  <div class="card">
-    <h2>🔐 הגדרת קוד דלת (לחצנים)</h2>
-    <small style="color: #6c757d;">הכנס רצף של L (לחצן שמאל) ו-R (לחצן ימין). דוגמה: LRLR</small>
-    <div class="passcode-box">
-      <input type="text" id="doorCodeInput" class="passcode-input" placeholder="LRLR" maxlength="10">
-      <button class="passcode-btn" onclick="saveDoorCode()">שמור קוד</button>
-    </div>
-  </div>
+        <div id="editDrawer" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
+            <div class="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col p-5 md:p-6 overflow-y-auto">
+                <div class="flex items-center justify-between border-b pb-4 mb-4 border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-photo-film text-purple-600 text-xl"></i>
+                        <h3 class="text-xl font-black text-slate-900">ניהול מדיה לשקפים</h3>
+                    </div>
+                    <button onclick="toggleEditMode()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">✕</button>
+                </div>
 
-  <div class="card">
-    <h2>🎛️ שליטה במכשירים</h2>
-    <div class="control-grid">
-      <button class="btn btn-rgb" id="btn-rgb" onclick="toggleDevice('rgbLed')">
-        <span>לד RGB 💡</span>
-        <small id="lbl-rgb">כבוי</small>
-      </button>
-
-      <div class="color-picker-card">
-        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">בחירת צבע 🎨</span>
-        <input type="color" id="rgbColorPicker" value="#ffffff" onchange="changeRgbColor(this.value)">
-      </div>
-
-      <button class="btn" id="btn-yellowLed" onclick="toggleDevice('yellowLed')">
-        <span>אור צהוב 🟡</span>
-        <small id="lbl-yellowLed">כבוי</small>
-      </button>
-
-      <button class="btn" id="btn-doorOpen" onclick="toggleDevice('doorOpen')">
-        <span>דלת 🚪</span>
-        <small id="lbl-doorOpen">סגורה</small>
-      </button>
-
-      <button class="btn" id="btn-windowOpen" onclick="toggleDevice('windowOpen')">
-        <span>חלון 🪟</span>
-        <small id="lbl-windowOpen">סגור</small>
-      </button>
-
-      <button class="btn" id="btn-buzzer" onclick="toggleDevice('buzzer')">
-        <span>זמזם 🔔</span>
-        <small id="lbl-buzzer">כבוי</small>
-      </button>
-
-      <div class="slider-card" style="grid-column: span 2;">
-        <span style="font-size: 0.85rem; font-weight: bold; color: #495057;">עוצמת מאוורר 💨: <span id="fanSpeedValue">0%</span></span>
-        <input type="range" id="fanSlider" min="0" max="255" value="0" oninput="updateFanSpeed(this.value)">
-      </div>
-
-    </div>
-  </div>
-
-</div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyB-Ks-c-oinr_TB2_NJ2wyFzdUPAcfze5E",
-    authDomain: "smarthouseiot-38ceb.firebaseapp.com",
-    databaseURL: "https://smarthouseiot-38ceb-default-rtdb.firebaseio.com",
-    projectId: "smarthouseiot-38ceb",
-    storageBucket: "smarthouseiot-38ceb.firebasestorage.app",
-    messagingSenderId: "996701344590",
-    appId: "1:996701344590:web:763e6abebb1a41f58fc41f"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  let controlsState = {
-    rgbLed: false,
-    rgbColor: "#ffffff",
-    yellowLed: false,
-    doorOpen: false,
-    windowOpen: false,
-    buzzer: false,
-    fanSpeed: 0,
-    passcode: "LRLR"
-  };
-
-  // יצירת קוד QR אוטומטית בגודל 70x70 פיקסלים להתאמה לצד הכותרת
-  window.addEventListener('DOMContentLoaded', () => {
-    new QRCode(document.getElementById("qrcode"), {
-      text: window.location.href,
-      width: 70,
-      height: 70
-    });
-  });
-
-  db.ref('sensors').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      document.getElementById('status-dot').className = "status-dot online";
-      document.getElementById('temp').innerText = data.temperature !== undefined ? data.temperature : '--';
-      document.getElementById('humidity').innerText = data.humidity !== undefined ? data.humidity : '--';
-      document.getElementById('gas').innerText = data.gas !== undefined ? data.gas : '--';
-      document.getElementById('water').innerText = data.water !== undefined ? data.water : '--';
-      document.getElementById('motion').innerText = data.motion ? "זיהה תנועה!" : "שקט";
-      document.getElementById('rfid').innerText = data.lastRFID || "אין";
-    }
-  }, (error) => {
-    console.error("Sensor read error:", error);
-    document.getElementById('status-dot').className = "status-dot";
-  });
-
-  db.ref('controls').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      controlsState = { ...controlsState, ...data };
-      updateUI();
-    }
-  });
-
-  function updateUI() {
-    updateBtn('btn-rgb', 'lbl-rgb', controlsState.rgbLed, "דלוק", "כבוי");
-    updateBtn('btn-yellowLed', 'lbl-yellowLed', controlsState.yellowLed, "דלוק", "כבוי");
-    updateBtn('btn-doorOpen', 'lbl-doorOpen', controlsState.doorOpen, "פתוחה", "סגורה");
-    updateBtn('btn-windowOpen', 'lbl-windowOpen', controlsState.windowOpen, "פתוח", "סגור");
-    updateBtn('btn-buzzer', 'lbl-buzzer', controlsState.buzzer, "פועל", "כבוי");
-
-    if (controlsState.fanSpeed !== undefined) {
-      document.getElementById('fanSlider').value = controlsState.fanSpeed;
-      const percentage = Math.round((controlsState.fanSpeed / 255) * 100);
-      document.getElementById('fanSpeedValue').innerText = percentage + "%";
-    }
-
-    if (controlsState.rgbColor) {
-      document.getElementById('rgbColorPicker').value = controlsState.rgbColor;
-    }
-    if (controlsState.passcode) {
-      document.getElementById('doorCodeInput').value = controlsState.passcode;
-    }
-  }
-
-  function updateBtn(btnId, lblId, state, activeText, inactiveText) {
-    const btn = document.getElementById(btnId);
-    const lbl = document.getElementById(lblId);
-    if (state) {
-      btn.classList.add('active');
-      lbl.innerText = activeText;
-    } else {
-      btn.classList.remove('active');
-      lbl.innerText = inactiveText;
-    }
-  }
-
-  function toggleDevice(device) {
-    const newValue = !controlsState[device];
-    db.ref('controls/' + device).set(newValue);
-  }
-
-  function updateFanSpeed(val) {
-    const speed = parseInt(val);
-    const percentage = Math.round((speed / 255) * 100);
-    document.getElementById('fanSpeedValue').innerText = percentage + "%";
-    db.ref('controls/fanSpeed').set(speed);
-  }
-
-  function changeRgbColor(hexColor) {
-    db.ref('controls/rgbColor').set(hexColor);
-    if (!controlsState.rgbLed) {
-      db.ref('controls/rgbLed').set(true);
-    }
-  }
-
-  function saveDoorCode() {
-    let code = document.getElementById('doorCodeInput').value.trim().toUpperCase();
-    code = code.replace(/[^LR]/g, '');
-    if (code.length > 0) {
-      db.ref('controls/passcode').set(code);
-      document.getElementById('doorCodeInput').value = code;
-      alert('הקוד עודכן בהצלחה: ' + code);
-    } else {
-      alert('יש להזין קוד התקף המכיל רק את האותיות L ו-R');
-    }
-  }
-</script>
-
-</body>
-</html>
+                <div class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-
